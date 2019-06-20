@@ -18,9 +18,9 @@
     # for the full list
     'category': 'Uncategorized',
     'version': '0.1',
-    'application' : True,
+    'application': True,
     # any module necessary for this one to work correctly
-    'depends': ['base'],
+    'depends': ['base','hr_timesheet'],
 
     # always loaded
     'data': [

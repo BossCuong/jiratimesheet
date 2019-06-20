@@ -20,7 +20,7 @@
     'version': '0.1',
     'application': True,
     # any module necessary for this one to work correctly
-    'depends': ['base','hr_timesheet'],
+    'depends': ['base','hr_timesheet','project'],
 
     # always loaded
     'data': [

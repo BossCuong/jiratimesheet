@@ -59,7 +59,27 @@ class HomeExtend(Home):
                     }
                 )
 
-                print(httpResponse.json())
+                issues = httpResponse.json()["issues"]
+
+                timesheetDB = request.env['account.analytic.line'].sudo()
+
+                taskDB = request.env['project.task'].sudo()
+
+                projectDB = request.env['project.project'].sudo()
+
+                for issue in issues:
+                    task = taskDB.create({
+                        'name': issue["id"]
+                    })
+
+                    project = taskDB.create({
+                        'name' : issue["fields"]["project"]["id"]
+                    })
+
+                    timesheetDB.create({
+                        'task_id' : task.id,
+                        'project_id' : project.id
+                    })
 
                 #projects = httpResponse.json()
 

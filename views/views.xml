@@ -1,0 +1,60 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+    <!--
+    <record model="ir.ui.view" id="jiratimesheet.list">
+      <field name="name">jiratimesheet list</field>
+      <field name="model">jiratimesheet.jiratimesheet</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+        </tree>
+      </field>
+    </record>
+    -->
+
+    <!-- actions opening views on models -->
+    <!--
+    <record model="ir.actions.act_window" id="jiratimesheet.action_window">
+      <field name="name">jiratimesheet window</field>
+      <field name="res_model">jiratimesheet.jiratimesheet</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    -->
+
+    <!-- server action to the one above -->
+    <!--
+    <record model="ir.actions.server" id="jiratimesheet.action_server">
+      <field name="name">jiratimesheet server</field>
+      <field name="model_id" ref="model_jiratimesheet_jiratimesheet"/>
+      <field name="state">code</field>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "tree,form",
+          "res_model": self._name,
+        }
+      </field>
+    </record>
+    -->
+
+    <!-- Top menu item -->
+    <!--
+    <menuitem name="jiratimesheet" id="jiratimesheet.menu_root"/>
+    -->
+    <!-- menu categories -->
+    <!--
+    <menuitem name="Menu 1" id="jiratimesheet.menu_1" parent="jiratimesheet.menu_root"/>
+    <menuitem name="Menu 2" id="jiratimesheet.menu_2" parent="jiratimesheet.menu_root"/>
+    -->
+    <!-- actions -->
+    <!--
+    <menuitem name="List" id="jiratimesheet.menu_1_list" parent="jiratimesheet.menu_1"
+              action="jiratimesheet.action_window"/>
+    <menuitem name="Server to list" id="jiratimesheet" parent="jiratimesheet.menu_2"
+              action="jiratimesheet.action_server"/>
+    -->
+  </data>
+</odoo>

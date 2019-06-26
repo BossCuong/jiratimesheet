@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import http
-import functools
-import base64
-import requests as callAPI
+from . import  API
 from odoo.http import request
 from odoo.addons.web.controllers.main import Home
 class HomeExtend(Home):
@@ -12,20 +10,21 @@ class HomeExtend(Home):
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
 
-            httpResponse = callAPI.post(
-                url = self.api_url + "/rest/auth/1/session",
-                json = {
-                    'username': request.params['login'],
-                    'password': request.params['password'],
-                }
-            )
+            JiraAPI = API(self.api_url)
+
+            credentials = {
+                'username' : request.params['login'],
+                'password' : request.params['password']
+            }
+
+            httpResponse = JiraAPI.authentication(credentials)
 
             if httpResponse.status_code == 200:
                 UserDB = request.env['res.users'].sudo().with_context(active_test=False)
 
                 currentUser = UserDB.search([('login', '=', request.params['login'])])
 
-                token = base64.b64encode((request.params['login'] + ':' + request.params['password']).encode('ascii'))
+                token = JiraAPI.getToken()
 
                 #If user not exist,creat one
                 if not currentUser:
@@ -41,6 +40,8 @@ class HomeExtend(Home):
                 currentUser.sudo().write({'authorization' : token})
 
                 request.env.cr.commit()
+
+                httpResponse = JiraAPI.getIssues
 
                 httpResponse = callAPI.get(
                     url = self.api_url + "/rest/api/2/search",
@@ -67,27 +68,29 @@ class HomeExtend(Home):
 
                 projectDB = request.env['project.project'].sudo()
 
+                employeeDB = request.env['hr.employee'].sudo()
+
+                employee = employeeDB.create(
+                    {
+                        'name': request.params['login']
+                    }
+                )
+
                 for issue in issues:
                     task = taskDB.create({
-                        'name': issue["id"]
+                        'name': issue["key"]
                     })
 
-                    project = taskDB.create({
-                        'name' : issue["fields"]["project"]["id"]
+                    project = projectDB.create({
+                        'name' : issue["fields"]["project"]["key"]
                     })
+
 
                     timesheetDB.create({
                         'task_id' : task.id,
-                        'project_id' : project.id
+                        'project_id' : project.id,
+                        'employee_id' : employee.id
                     })
-
-                #projects = httpResponse.json()
-
-                #projectNames = list(functools.reduce(lambda x,y : x + [y['name']],projects,[]))
-
-
-
-
 
         response = super().web_login(redirect, **kw)
 

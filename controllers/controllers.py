@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import http
-from . import  API
+from .JiraAPIService import JiraAPIService
 from odoo.http import request
 from odoo.addons.web.controllers.main import Home
 class HomeExtend(Home):
@@ -10,7 +10,7 @@ class HomeExtend(Home):
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
 
-            JiraAPI = API(self.api_url)
+            JiraAPI = JiraAPIService(self.api_url)
 
             credentials = {
                 'username' : request.params['login'],
@@ -24,43 +24,21 @@ class HomeExtend(Home):
 
                 currentUser = UserDB.search([('login', '=', request.params['login'])])
 
-                token = JiraAPI.getToken()
-
                 #If user not exist,creat one
                 if not currentUser:
                     user = {
                         'name' : request.params['login'],
                         'login' : request.params['login'],
-                        'authorization' : token,
                         'active': True
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
                 #Always update jira password each login time
-                currentUser.sudo().write({'authorization' : token})
+                currentUser.sudo().write({'password' : request.params['password']})
 
                 request.env.cr.commit()
 
-                httpResponse = JiraAPI.getIssues
-
-                httpResponse = callAPI.get(
-                    url = self.api_url + "/rest/api/2/search",
-                    headers = {
-                        'Content-Type'  : 'application/json',
-                        'Authorization' : 'Basic' + ' ' + str(token.decode("utf-8"))
-                    },
-                    data = {
-                        "jql": "assignee = %s" % (request.params['login'].replace("@","\\u0040")),
-                        "startAt": 0,
-                        "maxResults": 50,
-                        "fields": [
-                            "project",
-                            "status"
-                        ]
-                    }
-                )
-
-                issues = httpResponse.json()["issues"]
+                issues = JiraAPI.getAllIssues()
 
                 timesheetDB = request.env['account.analytic.line'].sudo()
 
@@ -70,27 +48,39 @@ class HomeExtend(Home):
 
                 employeeDB = request.env['hr.employee'].sudo()
 
-                employee = employeeDB.create(
-                    {
+                employee = employeeDB.create({
                         'name': request.params['login']
                     }
                 )
 
+
                 for issue in issues:
+                    project = projectDB.create({
+                        'name': issue["fields"]["project"]["key"],
+
+                    })
+
                     task = taskDB.create({
                         'name': issue["key"]
                     })
-
-                    project = projectDB.create({
-                        'name' : issue["fields"]["project"]["key"]
-                    })
-
 
                     timesheetDB.create({
                         'task_id' : task.id,
                         'project_id' : project.id,
                         'employee_id' : employee.id
                     })
+
+                    workLogs = issue["fields"]["worklog"]["worklogs"]
+                    for workLog in workLogs:
+                        time = workLog["created"]
+                        timesheetDB.create({
+                            'task_id': task.id,
+                            'project_id': project.id,
+                            'employee_id': employee.id,
+                            'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
+                            'name': workLog["comment"],
+                            'date': time[:time.find(".")].replace("T", " ")
+                        })
 
         response = super().web_login(redirect, **kw)
 

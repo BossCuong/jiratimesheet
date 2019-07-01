@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+        <record id="timesheet_view_form_test" model="ir.ui.view">
+            <field name="name">customize.test</field>
+            <field name="model">customize.transient</field>
+            <field name="priority">4567</field>
+            <field name="arch" type="xml">
+                <form string="test">
+                    <group>
+                        <field name="Date"/>
+                        <field name="Employee"/>
+                        <field name="Description"/>
+                        <field name="Project"/>
+                    </group>
+                    <group>
+                        <field name="Task"/>
+                        <field name="duration" widget="float_time" />
+
+                    </group>
+                    <footer>
+                        <button type="object" string="create" name="add_record" class="btn-primary"/>
+                        <button special="cancel" string="Cancel" class="btn-secondary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+</odoo>

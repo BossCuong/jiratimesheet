@@ -30,42 +30,41 @@ class JiraAPIService():
 
         return  httpResponse
 
-
-    # def getAllProject(self):
-    #     httpResponse = requests.get(
-    #         url = self.url + "/rest/api/2/project",
-    #         headers = self.headers
-    #     )
-    #     try:
-    #         projects = httpResponse.json()
-    #     except Exception as e:
-    #         print(e)
-    #
-    #     return projects
-
     def getAllIssues(self):
+        searchRange = 50
+        startIdx = 0
+        endIdx = 50
+        data = []
+        while(True):
+            httpResponse = requests.post(
+                url = self.url + "/rest/api/2/search",
+                headers= self.headers,
+                json = {
+                    "jql": "",
+                    "startAt": startIdx,
+                    "maxResults": endIdx,
+                    "fields": [
+                        "project",
+                        "status",
+                        "worklog",
+                        "assignee"
+                        ]
+                    }
+                )
 
-        httpResponse = requests.get(
-            url = self.url + "/rest/api/2/search",
-            headers= self.headers,
-            data ={
-                "jql": "",
-                "startAt": 0,
-                "maxResults": 50,
-                "fields": [
-                    "project",
-			        "status",
-			        "worklog",
-			        "assignee"
-                    ]
-                }
-            )
+            if httpResponse.status_code == 200:
+                try:
+                    if httpResponse.json()["issues"].len() <= (endIdx - startIdx):
+                        break
+                    else:
+                        data.extend(httpResponse.json()["issues"])
+                        startIdx = endIdx
+                        endIdx += searchRange
 
-        try:
-            data = httpResponse.json()["issues"]
-        except Exception as e:
-            print(e)
-            data = None
+                except Exception as e:
+                    print(e)
+                    data = []
+                    break
 
         return data
 

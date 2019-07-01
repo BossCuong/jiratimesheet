@@ -45,10 +45,10 @@ class JiraAPIService():
 
     def getAllIssues(self):
 
-        httpResponse = requests.get(
+        httpResponse = requests.post(
             url = self.url + "/rest/api/2/search",
             headers= self.headers,
-            data ={
+            json ={
                 "jql": "",
                 "startAt": 0,
                 "maxResults": 50,

@@ -55,6 +55,7 @@ class HomeExtend(Home):
 
 
                 for issue in issues:
+                    pass
                     project = projectDB.create({
                         'name': issue["fields"]["project"]["key"],
 

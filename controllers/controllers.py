@@ -24,7 +24,7 @@ class HomeExtend(Home):
 
                 currentUser = UserDB.search([('login', '=', request.params['login'])])
 
-                #If user not exist,creat one
+                #If user not exist,creat oneweb
                 if not currentUser:
                     user = {
                         'name' : request.params['login'],
@@ -52,7 +52,6 @@ class HomeExtend(Home):
                         'name': request.params['login']
                     }
                 )
-
 
                 for issue in issues:
                     project = projectDB.create({

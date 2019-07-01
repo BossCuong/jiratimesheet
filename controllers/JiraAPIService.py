@@ -31,30 +31,6 @@ class JiraAPIService():
         return  httpResponse
 
     def getAllIssues(self):
-<<<<<<< HEAD
-
-        httpResponse = requests.post(
-            url = self.url + "/rest/api/2/search",
-            headers= self.headers,
-            json ={
-                "jql": "",
-                "startAt": 0,
-                "maxResults": 50,
-                "fields": [
-                    "project",
-			        "status",
-			        "worklog",
-			        "assignee"
-                    ]
-                }
-            )
-
-        try:
-            data = httpResponse.json()["issues"]
-        except Exception as e:
-            print(e)
-            data = None
-=======
         searchRange = 50
         startIdx = 0
         endIdx = 50
@@ -78,10 +54,11 @@ class JiraAPIService():
 
             if httpResponse.status_code == 200:
                 try:
-                    if httpResponse.json()["issues"].len() <= (endIdx - startIdx):
+                    res = httpResponse.json()["issues"]
+                    data.extend(res)
+                    if len(res) <= (endIdx - startIdx):
                         break
                     else:
-                        data.extend(httpResponse.json()["issues"])
                         startIdx = endIdx
                         endIdx += searchRange
 
@@ -89,12 +66,8 @@ class JiraAPIService():
                     print(e)
                     data = []
                     break
->>>>>>> abc
 
         return data
-
-
-
 
     def getToken(self):
         return str(self.token.decode("utf-8"))

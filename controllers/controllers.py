@@ -53,35 +53,27 @@ class HomeExtend(Home):
                     }
                 )
 
-
-                for issue in issues:
-                    pass
-                    project = projectDB.create({
-                        'name': issue["fields"]["project"]["key"],
-
-                    })
-
-                    task = taskDB.create({
-                        'name': issue["key"]
-                    })
-
-                    timesheetDB.create({
-                        'task_id' : task.id,
-                        'project_id' : project.id,
-                        'employee_id' : employee.id
-                    })
-
-                    workLogs = issue["fields"]["worklog"]["worklogs"]
-                    for workLog in workLogs:
-                        time = workLog["created"]
-                        timesheetDB.create({
-                            'task_id': task.id,
-                            'project_id': project.id,
-                            'employee_id': employee.id,
-                            'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                            'name': workLog["comment"],
-                            'date': time[:time.find(".")].replace("T", " ")
-                        })
+                # for issue in issues:
+                #     project = projectDB.create({
+                #         'name': issue["fields"]["project"]["key"],
+                #
+                #     })
+                #
+                #     task = taskDB.create({
+                #         'name': issue["key"]
+                #     })
+                #
+                #     workLogs = issue["fields"]["worklog"]["worklogs"]
+                #     for workLog in workLogs:
+                #         time = workLog["created"]
+                #         timesheetDB.create({
+                #             'task_id': task.id,
+                #             'project_id': project.id,
+                #             'employee_id': employee.id,
+                #             'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
+                #             'name': workLog["comment"],
+                #             'date': time[:time.find(".")].replace("T", " ")
+                #         })
 
         response = super().web_login(redirect, **kw)
 

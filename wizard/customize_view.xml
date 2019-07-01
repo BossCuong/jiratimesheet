@@ -8,14 +8,17 @@
             <field name="arch" type="xml">
                 <form string="test">
                     <group>
-                        <field name="Date"/>
-                        <field name="Employee"/>
-                        <field name="Description"/>
-                        <field name="Project"/>
-                    </group>
-                    <group>
-                        <field name="Task"/>
-                        <field name="duration" widget="float_time" />
+                        <group>
+                            <field name="Date"/>
+                            <field name="Description"/>
+                            <field name="Project"/>
+                        </group>
+                        <group>
+                            <field name="Task"/>
+                            <field name="duration" widget="float_time" />
+                            <field name="task_ID" invisible="1"/>
+                            <field name="project_ID" invisible="1"/>
+                        </group>
 
                     </group>
                     <footer>

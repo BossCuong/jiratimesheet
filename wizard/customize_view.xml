@@ -9,20 +9,21 @@
                 <form string="test">
                     <group>
                         <group>
-                            <field name="Date"/>
-                            <field name="Description"/>
-                            <field name="Project"/>
+                            <field name="Date" edit="0" readonly="1"/>
+                            <field name="Project" edit="0" readonly="1"/>
+                            <field name="Task" edit="0" readonly="1"/>
+
                         </group>
                         <group>
-                            <field name="Task"/>
                             <field name="duration" widget="float_time" />
+                            <field name="Description"/>
                             <field name="task_ID" invisible="1"/>
                             <field name="project_ID" invisible="1"/>
                         </group>
 
                     </group>
                     <footer>
-                        <button type="object" string="create" name="add_record" class="btn-primary"/>
+                        <button type="object" string="add worklog" name="add_record" class="btn-primary"/>
                         <button special="cancel" string="Cancel" class="btn-secondary"/>
                     </footer>
                 </form>

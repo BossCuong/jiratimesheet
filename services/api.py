@@ -2,7 +2,7 @@ import requests
 import base64
 import json
 from functools import reduce
-class JiraAPIService():
+class Jira():
     def __init__(self,url):
         self.url = url
         self.token = ""

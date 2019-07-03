@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 from odoo import http
-from .JiraAPIService import JiraAPIService
+from ..services.api import Jira
 from odoo.http import request
+from odoo import fields
+from ..services.utils import to_UTCtime
+import datetime
+import pytz
+
 from odoo.addons.web.controllers.main import Home
 class HomeExtend(Home):
     api_url = 'https://jira.novobi.com'
@@ -10,7 +15,7 @@ class HomeExtend(Home):
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
 
-            JiraAPI = JiraAPIService(self.api_url)
+            JiraAPI = Jira(self.api_url)
 
             credentials = {
                 'username' : request.params['login'],
@@ -50,6 +55,7 @@ class HomeExtend(Home):
 
                 employee = employeeDB.create({
                         'name': request.params['login']
+
                     }
                 )
 
@@ -64,11 +70,6 @@ class HomeExtend(Home):
                         'name': issue["key"]
                     })
 
-                    timesheetDB.create({
-                        'task_id' : task.id,
-                        'project_id' : project.id,
-                        'employee_id' : employee.id
-                    })
 
                     workLogs = issue["fields"]["worklog"]["worklogs"]
                     for workLog in workLogs:
@@ -79,8 +80,10 @@ class HomeExtend(Home):
                             'employee_id': employee.id,
                             'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                             'name': workLog["comment"],
-                            'date': time[:time.find(".")].replace("T", " ")
+                            'date': to_UTCtime(time)
                         })
+                        print(time)
+                        print(to_UTCtime(time))
 
         response = super().web_login(redirect, **kw)
 

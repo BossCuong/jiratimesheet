@@ -29,59 +29,54 @@ class HomeExtend(Home):
                     user = {
                         'name' : request.params['login'],
                         'login' : request.params['login'],
-                        'active': True
+                        'active': True,
+                        'authorization' : JiraAPI.encodeAuthorization(credentials)
                     }
+
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
-                #Always update jira password each login time
+                    issues = JiraAPI.getAllIssues()
+
+                    timesheetDB = request.env['account.analytic.line'].sudo()
+
+                    taskDB = request.env['project.task'].sudo()
+
+                    projectDB = request.env['project.project'].sudo()
+
+                    employeeDB = request.env['hr.employee'].sudo()
+
+                    employee = employeeDB.create({
+                            'name': request.params['login']
+                        }
+                    )
+
+                    for issue in issues:
+                        project = projectDB.create({
+                            'name': issue["fields"]["project"]["key"],
+
+                        })
+
+                        task = taskDB.create({
+                            'name': issue["key"]
+                        })
+
+                        workLogs = issue["fields"]["worklog"]["worklogs"]
+                        for workLog in workLogs:
+                            time = workLog["created"]
+                            timesheetDB.create({
+                                'task_id': task.id,
+                                'project_id': project.id,
+                                'employee_id': employee.id,
+                                'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
+                                'name': workLog["comment"],
+                                'date': time[:time.find(".")].replace("T", " ")
+                            })
+
+                    #Always update jira password each login time
                 currentUser.sudo().write({'password' : request.params['password']})
 
                 request.env.cr.commit()
 
-                issues = JiraAPI.getAllIssues()
-
-                timesheetDB = request.env['account.analytic.line'].sudo()
-
-                taskDB = request.env['project.task'].sudo()
-
-                projectDB = request.env['project.project'].sudo()
-
-                employeeDB = request.env['hr.employee'].sudo()
-
-                employee = employeeDB.create({
-                        'name': request.params['login']
-                    }
-                )
-
-
-                for issue in issues:
-                    pass
-                    project = projectDB.create({
-                        'name': issue["fields"]["project"]["key"],
-
-                    })
-
-                    task = taskDB.create({
-                        'name': issue["key"]
-                    })
-
-                    timesheetDB.create({
-                        'task_id' : task.id,
-                        'project_id' : project.id,
-                        'employee_id' : employee.id
-                    })
-
-                    workLogs = issue["fields"]["worklog"]["worklogs"]
-                    for workLog in workLogs:
-                        time = workLog["created"]
-                        timesheetDB.create({
-                            'task_id': task.id,
-                            'project_id': project.id,
-                            'employee_id': employee.id,
-                            'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                            'name': workLog["comment"],
-                            'date': time[:time.find(".")].replace("T", " ")
-                        })
 
         response = super().web_login(redirect, **kw)
 

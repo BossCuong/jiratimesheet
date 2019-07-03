@@ -24,10 +24,15 @@
 
     # always loaded
     'data': [
+
         # 'security/ir.model.access.csv',
+        'views/assets.xml',
+
         'views/timesheet_view.xml',
+
         'views/timesheet_menu.xml',
-        'views/timesheet_template.xml',
+
+        'wizard/customize_view.xml'
     ],
     # only loaded in demonstration mode
     'demo': [

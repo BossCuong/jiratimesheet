@@ -72,8 +72,5 @@ class JiraAPIService():
 
         return data
 
-
-
-
     def getToken(self):
         return str(self.token.decode("utf-8"))

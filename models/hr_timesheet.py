@@ -9,3 +9,11 @@ class Timesheet(models.Model):
     project_id = fields.Many2one('project.project', 'Project', domain=[('allow_timesheets', '=', True)])
 
     employee_id = fields.Many2one('hr.employee', "Employee")
+
+    # def autoGenLine(self):
+    #
+    #     print(self)
+    #
+    #     self.env['account.analytic.line'].create({
+    #
+    #     })

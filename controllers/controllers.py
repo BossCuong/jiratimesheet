@@ -53,11 +53,12 @@ class HomeExtend(Home):
                     for issue in issues:
                         project = projectDB.create({
                             'name': issue["fields"]["project"]["key"],
-
                         })
 
                         task = taskDB.create({
-                            'name': issue["key"]
+                            'name': issue["key"],
+                            'project_id' : project.id
+
                         })
 
                         workLogs = issue["fields"]["worklog"]["worklogs"]

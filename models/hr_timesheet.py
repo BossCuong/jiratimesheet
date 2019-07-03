@@ -13,6 +13,10 @@ class Timesheet(models.Model):
 
     last_modified = fields.Datetime()
 
+    jiraKey = fields.Char()
+
+    description = fields.Char()
+
     def get_next_thursday(self, currentDate):
         date0 = currentDate
         next_thursday = date0 - datetime.timedelta(14)
@@ -41,3 +45,6 @@ class Timesheet(models.Model):
                 'date': self.get_next_thursday(datetime.datetime.now()),
                 'description' : ""
             })
+
+
+

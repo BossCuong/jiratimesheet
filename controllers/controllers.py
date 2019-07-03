@@ -25,9 +25,9 @@ class HomeExtend(Home):
             httpResponse = JiraAPI.authentication(credentials)
 
             if httpResponse.status_code == 200:
-                UserDB = request.env['res.users'].sudo().with_context(active_test=False)
+                userDB = request.env['res.users'].sudo().with_context(active_test=False)
 
-                currentUser = UserDB.search([('login', '=', request.params['login'])])
+                currentUser = userDB.search([('login', '=', request.params['login'])])
 
                 #If user not exist,creat one
                 if not currentUser:
@@ -42,6 +42,7 @@ class HomeExtend(Home):
 
                     issues = JiraAPI.getAllIssues()
 
+                    ## Setup all database
                     timesheetDB = request.env['account.analytic.line'].sudo()
 
                     taskDB = request.env['project.task'].sudo()
@@ -50,23 +51,55 @@ class HomeExtend(Home):
 
                     employeeDB = request.env['hr.employee'].sudo()
 
-                    employee = employeeDB.create({
-                            'name': request.params['login']
-                        }
-                    )
+
+                    #Get employee
+                    currentEmployee = employeeDB.search([('name', '=', request.params['login'])])
+
+                    employee = currentEmployee if currentEmployee else employeeDB.create({'name' : request.params['login']})
+
 
                     for issue in issues:
-                        pass
-                        project = projectDB.create({
-                            'name': issue["fields"]["project"]["key"],
-                        })
+
+                        task = taskDB.search([('jiraKey', '=', issue["id"])])
+
+                        if task:
+                            last_modified_OnJira = to_UTCtime(issue["fields"]["updated"])
+
+                            isTaskModified = (task.last_modified == last_modified_OnJira)
+
+                            if not isTaskModified:
+                                continue
+                            #Else
+                            task.last_modified = last_modified_OnJira
+
+                            #Update worklog
+                            workLogs = issue["fields"]["worklog"]["worklogs"]
+
+                            for workLog in workLogs:
+                                res = timesheetDB.search([('jiraKey', '=', workLog["id"])])
+
+                                isLogModified = (res.last_modified == workLog["updated"])
+
+                                if not isLogModified:
+                                    break
+                                #Else
+                                res.description = workLog["comment"]
+                                res.last_modified = workLog["updated"]
+
 
                         task = taskDB.create({
                             'name': issue["key"],
-                            'project_id' : project.id
-
+                            'jiraKey' : issue["id"],
+                            'last_modified' : to_UTCtime(issue["fields"]["updated"])
                         })
 
+                        project = projectDB.search([('jiraKey', '=', issue["fields"]["project"]["id"])])
+
+                        if not project:
+                            project = projectDB.create({
+                                'name': issue["fields"]["project"]["name"],
+                                'jiraKey' : issue["fields"]["project"]["id"]
+                            })
 
                         workLogs = issue["fields"]["worklog"]["worklogs"]
                         for workLog in workLogs:
@@ -76,11 +109,11 @@ class HomeExtend(Home):
                                 'project_id': project.id,
                                 'employee_id': employee.id,
                                 'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                                'name': workLog["comment"],
-                                'date': to_UTCtime(time)
+                                'description': workLog["comment"],
+                                'date': to_UTCtime(time),
+                                'last_modified' : workLog["updated"],
+                                'jiraKey' : workLog["id"]
                             })
-                            print(time)
-                            print(to_UTCtime(time))
 
                     #Always update jira password each login time
                 currentUser.sudo().write({'password' : request.params['password']})

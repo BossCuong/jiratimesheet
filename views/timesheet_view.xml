@@ -29,7 +29,6 @@
             </grid>
         </field>
     </record>
-
 </odoo>
         <!-- Views definition -->
 <!--        <record id="timesheet_view_tree_colored" model="ir.ui.view">-->
@@ -47,7 +46,7 @@
 <!--        </record>-->
 
         <!-- Line edition and creation from grid -->
-<!--        <record id="timesheet_view_form" model="ir.ui.view">-->
+<!--        <record id="timesheet_view_form" model="ir.ui.vie">-->
 <!--            <field name="name">account.analytic.line.form</field>-->
 <!--            <field name="model">account.analytic.line</field>-->
 <!--            <field name="priority">4567</field>-->

@@ -8,7 +8,10 @@ class Jira():
         self.token = ""
         self.headers = ""
 
+    ## encode standard auth 1
 
+    def encodeAuthorization(self, credentials):
+        return base64.b64encode((credentials["username"] + ':' + credentials['password']).encode('ascii'))
     ## Write get,set method
 
     def authentication(self,credentials):
@@ -21,7 +24,7 @@ class Jira():
                 'password': credentials['password'],
             }
         )
-        self.token = base64.b64encode((credentials["username"] + ':' + credentials['password']).encode('ascii'))
+        self.token = self.encodeAuthorization(credentials)
 
         self.headers = {
             'Content-Type': 'application/json',

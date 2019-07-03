@@ -15,7 +15,7 @@ class Timesheet(models.Model):
 
     def get_next_thursday(self, currentDate):
         date0 = currentDate
-        next_thursday = date0 - datetime.timedelta(7)
+        next_thursday = date0 - datetime.timedelta(14)
         return next_thursday
 
     def auto_gen_new_line(self):

@@ -4,14 +4,13 @@
         <record id="timesheet_view_form_test" model="ir.ui.view">
             <field name="name">jira worklog</field>
             <field name="model">customize.transient</field>
-            <field name="priority">4567</field>
             <field name="arch" type="xml">
                 <form string="test">
                     <group>
                         <group>
-                            <field name="Date" edit="0" readonly="1"/>
-                            <field name="Project" edit="0" readonly="1"/>
-                            <field name="Task" edit="0" readonly="1"/>
+                            <field name="Date" />
+                            <field name="Project" />
+                            <field name="Task" />
                             <field name="name" />
 
                         </group>

@@ -12,6 +12,8 @@
                             <field name="Date" edit="0" readonly="1"/>
                             <field name="Project" edit="0" readonly="1"/>
                             <field name="Task" edit="0" readonly="1"/>
+                            <field name="name" />
+
                         </group>
                         <group>
                             <field name="duration" widget="float_time" />

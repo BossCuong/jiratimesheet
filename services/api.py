@@ -50,7 +50,8 @@ class Jira():
                         "project",
                         "status",
                         "worklog",
-                        "assignee"
+                        "assignee",
+                        "updated"
                         ]
                     }
                 )

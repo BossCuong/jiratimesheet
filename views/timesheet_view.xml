@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+ <!-- Views definition -->
+
     <record id="timesheet_line_tree" model="ir.ui.view">
         <field name="name">Timesheet Line Tree View</field>
         <field name="model">account.analytic.line</field>

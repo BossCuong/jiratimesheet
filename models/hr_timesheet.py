@@ -11,4 +11,8 @@ class Timesheet(models.Model):
 
     employee_id = fields.Many2one('hr.employee', "Employee")
 
+    jiraKey = fields.Char()
+
+    description = fields.Char()
+
     last_modified = fields.Datetime()

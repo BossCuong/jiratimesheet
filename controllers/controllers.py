@@ -54,7 +54,6 @@ class HomeExtend(Home):
                 # Get employee
                 currentEmployee = employeeDB.search([('name', '=', request.params['login'])])
 
-
                 employee = currentEmployee if currentEmployee else employeeDB.create({'name': request.params['login']})
 
                 for issue in issues:
@@ -65,17 +64,6 @@ class HomeExtend(Home):
                         last_modified_OnJira = to_UTCtime(issue["fields"]["updated"])
 
                         isTaskModified = (task.last_modified != last_modified_OnJira)
-
-                    for issue in issues:
-                        project = projectDB.create({
-                            'name': issue["fields"]["project"]["key"],
-                        })
-
-                        task = taskDB.create({
-                            'name': issue["key"],
-                            'project_id' : project.id
-
-                        })
 
                         if isTaskModified:
                             task.write({

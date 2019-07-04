@@ -37,8 +37,8 @@ class transientTest(models.TransientModel):
             'date': self.Date
         })
 
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',
-        }
+        action = self.env.ref('jiratimesheet.action_timesheet_views').read()[0]
+        action['target'] = 'main'
+        action['context'] = {'grid_anchor' : fields.Date.to_string(self.Date)}
+        return action
 

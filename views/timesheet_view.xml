@@ -33,6 +33,20 @@
             </field>
     </record>
 
+    <record id="view_search_book" model="ir.ui.view">
+        <field name="name">Worklog Filters</field>
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+          <search>
+          <field name="employee_id"/>
+
+          <filter name="filter_my_name"
+                  string="My Worklog"
+                  domain="[('employee_id','=', uid)]"/>
+          </search>
+        </field>
+
+    </record>
    <record id="jira_auto_generate_line" model="ir.cron">
         <field name="name">Base: auto generate new weekly worklog line</field>
         <field name="model_id" ref="model_account_analytic_line"/>

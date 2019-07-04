@@ -11,10 +11,12 @@ class transientTest(models.TransientModel):
     Description = fields.Char()
     Project = fields.Char()
     Task = fields.Char()
+
     duration = fields.Float('Duration in hours ')
+
     project_ID = fields.Integer()
     task_ID = fields.Integer()
-
+    name = fields.Char()
 
     @api.multi
     def add_record(self):
@@ -32,7 +34,7 @@ class transientTest(models.TransientModel):
             'project_id': self.project_ID,
             'employee_id': employee.id,
             'unit_amount': self.duration ,
-            'name': self.Description,
+            'name': self.name,
             'description' : self.Description,
             'date': self.Date
         })

@@ -11,7 +11,9 @@ class transientTest(models.TransientModel):
     Description = fields.Char()
     Project = fields.Char()
     Task = fields.Char()
+
     duration = fields.Float('Duration in hours ')
+
     project_ID = fields.Integer()
     task_ID = fields.Integer()
     name = fields.Char()

@@ -81,9 +81,9 @@ class HomeExtend(Home):
                                 isLogModified = (res.last_modified == workLog["updated"])
 
                                 if not isLogModified:
-                                    break
+                                    continue
                                 #Else
-                                res.description = workLog["comment"]
+                                res.name = workLog["comment"]
                                 res.last_modified = workLog["updated"]
 
 
@@ -109,7 +109,7 @@ class HomeExtend(Home):
                                 'project_id': project.id,
                                 'employee_id': employee.id,
                                 'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                                'description': workLog["comment"],
+                                'name': workLog["comment"],
                                 'date': to_UTCtime(time),
                                 'last_modified' : workLog["updated"],
                                 'jiraKey' : workLog["id"]

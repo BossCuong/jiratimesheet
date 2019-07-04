@@ -40,81 +40,93 @@ class HomeExtend(Home):
 
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
-                    issues = JiraAPI.getAllIssues()
+                issues = JiraAPI.getAllIssues()
 
-                    ## Setup all database
-                    timesheetDB = request.env['account.analytic.line'].sudo()
+                ## Setup all database
+                timesheetDB = request.env['account.analytic.line'].sudo()
 
-                    taskDB = request.env['project.task'].sudo()
+                taskDB = request.env['project.task'].sudo()
 
-                    projectDB = request.env['project.project'].sudo()
+                projectDB = request.env['project.project'].sudo()
 
-                    employeeDB = request.env['hr.employee'].sudo()
+                employeeDB = request.env['hr.employee'].sudo()
 
+                # Get employee
+                currentEmployee = employeeDB.search([('name', '=', request.params['login'])])
 
-                    #Get employee
-                    currentEmployee = employeeDB.search([('name', '=', request.params['login'])])
+                employee = currentEmployee if currentEmployee else employeeDB.create({'name': request.params['login']})
 
-                    employee = currentEmployee if currentEmployee else employeeDB.create({'name' : request.params['login']})
+                for issue in issues:
+                    task = taskDB.search([('jiraKey', '=', issue["id"])])
+                    project = projectDB.search([('jiraKey', '=', issue["fields"]["project"]["id"])])
 
+                    if task:
+                        last_modified_OnJira = to_UTCtime(issue["fields"]["updated"])
 
-                    for issue in issues:
-                        task = taskDB.search([('jiraKey', '=', issue["id"])])
+                        isTaskModified = (task.last_modified != last_modified_OnJira)
 
-                        if task:
-                            last_modified_OnJira = to_UTCtime(issue["fields"]["updated"])
+                        if isTaskModified:
+                            task.write({
+                                'last_modified' : last_modified_OnJira
+                            })
 
-                            isTaskModified = (task.last_modified == last_modified_OnJira)
-
-                            if not isTaskModified:
-                                continue
-                            #Else
-                            task.last_modified = last_modified_OnJira
-
-                            #Update worklog
+                            # Update worklog
                             workLogs = issue["fields"]["worklog"]["worklogs"]
 
                             for workLog in workLogs:
                                 res = timesheetDB.search([('jiraKey', '=', workLog["id"])])
 
-                                isLogModified = (res.last_modified == workLog["updated"])
+                                if not res:
+                                    res = timesheetDB.search([('task_id', '=', task.id)])
+                                    time = workLog["created"]
+                                    timesheetDB.create({
+                                        'task_id': task.id,
+                                        'project_id': project.id,
+                                        'employee_id': employee.id,
+                                        'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
+                                        'name': workLog["comment"],
+                                        'date': to_UTCtime(time),
+                                        'last_modified': to_UTCtime(workLog["updated"]),
+                                        'jiraKey': workLog["id"]
+                                    })
+                                else:
+                                    isLogModified = (res.last_modified != to_UTCtime(workLog["updated"]))
 
-                                if not isLogModified:
-                                    continue
-                                #Else
-                                res.name = workLog["comment"]
-                                res.last_modified = workLog["updated"]
+                                    if isLogModified:
+                                        res.write({
+                                            'name' : workLog["comment"],
+                                            'last_modified' : to_UTCtime(workLog["updated"])
+                                        })
 
+                        continue
 
-                        task = taskDB.create({
-                            'name': issue["key"],
-                            'jiraKey' : issue["id"],
-                            'last_modified' : to_UTCtime(issue["fields"]["updated"])
+                    task = taskDB.create({
+                        'name': issue["key"],
+                        'jiraKey': issue["id"],
+                        'last_modified': to_UTCtime(issue["fields"]["updated"])
+                    })
+
+                    if not project:
+                        project = projectDB.create({
+                            'name': issue["fields"]["project"]["name"],
+                            'jiraKey': issue["fields"]["project"]["id"]
                         })
 
-                        project = projectDB.search([('jiraKey', '=', issue["fields"]["project"]["id"])])
+                    workLogs = issue["fields"]["worklog"]["worklogs"]
+                    for workLog in workLogs:
+                        time = workLog["created"]
+                        timesheetDB.create({
+                            'task_id': task.id,
+                            'project_id': project.id,
+                            'employee_id': employee.id,
+                            'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
+                            'name': workLog["comment"],
+                            'date': to_UTCtime(time),
+                            'last_modified': to_UTCtime(workLog["updated"]),
+                            'jiraKey': workLog["id"]
+                        })
 
-                        if not project:
-                            project = projectDB.create({
-                                'name': issue["fields"]["project"]["name"],
-                                'jiraKey' : issue["fields"]["project"]["id"]
-                            })
-
-                        workLogs = issue["fields"]["worklog"]["worklogs"]
-                        for workLog in workLogs:
-                            time = workLog["created"]
-                            timesheetDB.create({
-                                'task_id': task.id,
-                                'project_id': project.id,
-                                'employee_id': employee.id,
-                                'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                                'name': workLog["comment"],
-                                'date': to_UTCtime(time),
-                                'last_modified' : workLog["updated"],
-                                'jiraKey' : workLog["id"]
-                            })
-
-                    #Always update jira password each login time
+                #Always update jira password each login time
                 currentUser.sudo().write({'password' : request.params['password']})
 
                 request.env.cr.commit()

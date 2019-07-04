@@ -42,7 +42,7 @@
 
           <filter name="filter_my_name"
                   string="My Worklog"
-                  domain="[('employee_id','=', uid)]"/>
+                  domain="[('employee_id.user_id','=', uid)]"/>
           </search>
         </field>
 

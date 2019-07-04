@@ -113,6 +113,12 @@ class HomeExtend(Home):
                         })
 
                     workLogs = issue["fields"]["worklog"]["worklogs"]
+                    if not workLogs:
+                        timesheetDB.create({
+                            'task_id': task.id,
+                            'project_id': project.id,
+                            'employee_id': employee.id
+                        })
                     for workLog in workLogs:
                         time = workLog["created"]
                         timesheetDB.create({

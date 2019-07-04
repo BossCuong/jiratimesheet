@@ -113,7 +113,7 @@ class HomeExtend(Home):
                             'jiraKey': issue["fields"]["project"]["id"]
                         })
 
-                    workLogs = issue["fields"]["worklog"]["worklogs"]
+                    workLogs = JiraAPI.getAllWorklogByIssue(issue["id"])
                     if not workLogs:
                         timesheetDB.create({
                             'task_id': task.id,

@@ -73,5 +73,18 @@ class Jira():
 
         return data
 
+    def getAllWorklogByIssue(self, issueID):
+        httpResponse = requests.get(
+            url=self.url + "/rest/api/2/issue/%s/worklog/" % (issueID),
+            headers=self.headers
+        )
+        try:
+            data = httpResponse.json()["worklogs"]
+        except Exception as e:
+            print(e)
+            data = []
+
+        return data
+
     def getToken(self):
         return str(self.token.decode("utf-8"))

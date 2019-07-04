@@ -14,3 +14,4 @@ class Timesheet(models.Model):
     jiraKey = fields.Char()
 
     last_modified = fields.Datetime()
+

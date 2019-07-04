@@ -63,6 +63,7 @@ class HomeExtend(Home):
                     if task:
                         last_modified_OnJira = to_UTCtime(issue["fields"]["updated"])
 
+
                         isTaskModified = (task.last_modified != last_modified_OnJira)
 
                         if isTaskModified:

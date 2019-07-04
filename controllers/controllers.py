@@ -63,13 +63,8 @@ class HomeExtend(Home):
                     if task:
                         last_modified_OnJira = to_UTCtime(issue["fields"]["updated"])
 
-# <<<<<<< HEAD
-#                     for issue in issues:
-#
-#                         task = taskDB.search([('jiraKey', '=', issue["id"])])
-# =======
+
                         isTaskModified = (task.last_modified != last_modified_OnJira)
-# >>>>>>> d469501eedb5de99ce282d133d0b21011075da1a
 
                         if isTaskModified:
                             task.write({
@@ -119,6 +114,12 @@ class HomeExtend(Home):
                         })
 
                     workLogs = issue["fields"]["worklog"]["worklogs"]
+                    if not workLogs:
+                        timesheetDB.create({
+                            'task_id': task.id,
+                            'project_id': project.id,
+                            'employee_id': employee.id
+                        })
                     for workLog in workLogs:
                         time = workLog["created"]
                         timesheetDB.create({

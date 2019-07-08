@@ -35,7 +35,9 @@ class HomeExtend(Home):
                         'name' : request.params['login'],
                         'login' : request.params['login'],
                         'active': True,
-                        'authorization' : JiraAPI.encodeAuthorization(credentials)
+                        'authorization' : JiraAPI.encodeAuthorization(credentials),
+                        'employee' : True,
+                        'employee_ids': [(0, 0, {'name': request.params['login']})]
                     }
 
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
@@ -51,10 +53,8 @@ class HomeExtend(Home):
 
                 employeeDB = request.env['hr.employee'].sudo()
 
-                # Get employee
-                currentEmployee = employeeDB.search([('name', '=', request.params['login'])])
 
-                employee = currentEmployee if currentEmployee else employeeDB.create({'name': request.params['login']})
+                employee = currentUser.employee_ids[0]
 
                 for issue in issues:
                     task = taskDB.search([('jiraKey', '=', issue["id"])])
@@ -101,17 +101,21 @@ class HomeExtend(Home):
 
                         continue
 
-                    task = taskDB.create({
-                        'name': issue["key"],
-                        'jiraKey': issue["id"],
-                        'last_modified': to_UTCtime(issue["fields"]["updated"])
-                    })
+
 
                     if not project:
                         project = projectDB.create({
                             'name': issue["fields"]["project"]["name"],
-                            'jiraKey': issue["fields"]["project"]["id"]
+                            'jiraKey': issue["fields"]["project"]["id"],
                         })
+
+                    task = taskDB.create({
+                        'name': issue["key"],
+                        'jiraKey': issue["id"],
+                        'last_modified': to_UTCtime(issue["fields"]["updated"]),
+                        'project_id': project.id
+
+                    })
 
                     workLogs = issue["fields"]["worklog"]["worklogs"]
                     if not workLogs:

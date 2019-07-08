@@ -1,26 +1,30 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields, models,api
+from odoo import fields, models, api, exceptions, _
 
 
 class transientTest(models.TransientModel):
     _name = 'customize.transient'
 
-    Date = fields.Date()
+    Date = fields.Datetime()
     Description = fields.Char()
     Project = fields.Char()
     Task = fields.Char()
-
     duration = fields.Float('Duration in hours ')
-
     project_ID = fields.Integer()
     task_ID = fields.Integer()
-    name = fields.Char()
 
     @api.multi
     def add_record(self):
         self.ensure_one()
+
+        # validate input data
+        if self.duration <= 0:
+            raise exceptions.UserError(_("Duration is invalied, please input again !"))
+        if self.Description == "":
+            raise exceptions.UserError(_("Oohh, you forget filling Description field "))
+
 
         timesheetDB = self.env['account.analytic.line'].sudo()
 
@@ -28,14 +32,13 @@ class transientTest(models.TransientModel):
         employee_DB = self.env['hr.employee'].sudo()
         employee = employee_DB.search([('name','=',username)])
 
-
         timesheetDB.create({
             'task_id': self.task_ID,
             'project_id': self.project_ID,
             'employee_id': employee.id,
             'unit_amount': self.duration ,
-            'name': self.name,
             'description' : self.Description,
+            'name' : self.Description,
             'date': self.Date
         })
 

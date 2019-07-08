@@ -38,15 +38,16 @@
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
           <search>
+          <field name="task_id" />
+          <field name="project_id" />
           <field name="employee_id"/>
-
           <filter name="filter_my_name"
                   string="My Worklog"
-                  domain="[('employee_id','=', uid)]"/>
+                  domain="[('employee_id.user_id','=', uid)]"/>
           </search>
         </field>
-
     </record>
+
    <record id="jira_auto_generate_line" model="ir.cron">
         <field name="name">Base: auto generate new weekly worklog line</field>
         <field name="model_id" ref="model_account_analytic_line"/>

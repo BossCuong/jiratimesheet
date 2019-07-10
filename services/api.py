@@ -3,8 +3,8 @@ import base64
 import json
 from functools import reduce
 class Jira():
-    def __init__(self,url):
-        self.url = url
+    def __init__(self):
+        self.url = 'https://jira.novobi.com'
         self.token = ""
         self.headers = ""
 
@@ -32,6 +32,12 @@ class Jira():
         }
 
         return  httpResponse
+
+    def setHeaders(self,authorization):
+        self.headers = {
+            'Content-Type': 'application/json',
+            'Authorization': "Basic" + ' ' + authorization
+        }
 
     def getAllIssues(self):
         searchRange = 50
@@ -85,6 +91,24 @@ class Jira():
             data = []
 
         return data
+
+    def add_worklog(self, agr):
+        httpResponse = requests.post(
+            url=self.url + "/rest/api/2/issue/%s/worklog" %(agr["task_key"]),
+            headers=self.headers,
+            json={
+                "comment": agr["description"],
+                "started": agr["date"],
+                "timeSpentSeconds": int(agr["unit_amount"]*60*60)
+            }
+        )
+
+        if httpResponse.status_code == 201:
+            print("Add Worklog OK!")
+            print(httpResponse)
+            return httpResponse.json()
+        else:
+            return None
 
     def getToken(self):
         return str(self.token.decode("utf-8"))

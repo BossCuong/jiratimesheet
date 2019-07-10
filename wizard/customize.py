@@ -3,7 +3,7 @@
 
 from odoo import fields, models, api, exceptions, _
 from ..services.utils import to_localTime
-
+from ..services.api import Jira
 class transientTest(models.TransientModel):
     _name = 'customize.transient'
 
@@ -32,9 +32,17 @@ class transientTest(models.TransientModel):
         employee_DB = self.env['hr.employee'].sudo()
         employee = employee_DB.search([('name','=',username)])
 
-        print(self.Date)
+        time = to_localTime(self.Date)
 
-        print(to_localTime(self.Date))
+        JiraAPI = Jira()
+        JiraAPI.setHeaders(self.env.user['authorization'])
+        worklog = {
+            "task_key" : self.Task,
+            "description" : self.Description,
+            "date" : fields.Datetime.to_string(self.Date),
+            "unit_amount" : self.duration
+        }
+        JiraResponse = JiraAPI.add_worklog(worklog)
 
         timesheetDB.create({
             'task_id': self.task_ID,
@@ -43,7 +51,7 @@ class transientTest(models.TransientModel):
             'unit_amount': self.duration ,
             'description' : self.Description,
             'name' : self.Description,
-            'date': to_localTime(self.Date)
+            'date': time
         })
 
         action = self.env.ref('jiratimesheet.action_timesheet_views').read()[0]

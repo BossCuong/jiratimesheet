@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError, Warning
+
 import datetime
 class Timesheet(models.Model):
     _inherit = 'account.analytic.line'
@@ -37,4 +38,28 @@ class Timesheet(models.Model):
                 'date': datetime.datetime.now() + datetime.timedelta(7),
             })
 
+
+    @api.multi
+    def button_sync(self):
+
+        fail_sync_jira = "function call to jira"
+        if fail_sync_jira :
+            raise Warning(_("problem raise when sync"))
+
+
+    @api.model
+    def create(self, val):
+
+        # put code sync to Jira here
+        # if fail return pop up
+
+        return super(Timesheet,self).create(val)
+
+
+    @api.multi
+    def write(self, val):
+
+        # put code sync to Jira here
+
+        return super(Timesheet,self).write(val)
 

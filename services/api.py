@@ -3,15 +3,22 @@ import base64
 import json
 from functools import reduce
 class Jira():
-    def __init__(self):
+    def __init__(self,authorization = None):
         self.url = 'https://jira.novobi.com'
         self.token = ""
-        self.headers = ""
+        self.headers = {
+            'Content-Type': 'application/json',
+            'Authorization': "Basic" + ' ' + str(authorization)
+        }
 
     ## encode standard auth 1
 
     def encodeAuthorization(self, credentials):
-        return base64.b64encode((credentials["username"] + ':' + credentials['password']).encode('ascii'))
+        res = base64.b64encode((credentials["username"] + ':' + credentials['password']).encode('ascii'))
+        return res.decode("utf-8")
+
+    def getToken(self):
+        return self.token
     ## Write get,set method
 
     def authentication(self,credentials):
@@ -24,6 +31,7 @@ class Jira():
                 'password': credentials['password'],
             }
         )
+        #check httresponse
         self.token = self.encodeAuthorization(credentials)
 
         self.headers = {
@@ -32,12 +40,6 @@ class Jira():
         }
 
         return  httpResponse
-
-    def setHeaders(self,authorization):
-        self.headers = {
-            'Content-Type': 'application/json',
-            'Authorization': "Basic" + ' ' + authorization
-        }
 
     def getAllIssues(self):
         searchRange = 50
@@ -84,8 +86,23 @@ class Jira():
             url=self.url + "/rest/api/2/issue/%s/worklog/" % (issueID),
             headers=self.headers
         )
+
         try:
             data = httpResponse.json()["worklogs"]
+        except Exception as e:
+            print(e)
+            data = []
+
+        return data
+
+    def get_project(self,project_key):
+        httpResponse = requests.get(
+            url=self.url + "/rest/api/2/project/%s" % (project_key),
+            headers=self.headers
+        )
+
+        try:
+            data = httpResponse.json()
         except Exception as e:
             print(e)
             data = []
@@ -109,6 +126,3 @@ class Jira():
             return httpResponse.json()
         else:
             return None
-
-    def getToken(self):
-        return str(self.token.decode("utf-8"))

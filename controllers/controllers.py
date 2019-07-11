@@ -9,13 +9,13 @@ import pytz
 
 from odoo.addons.web.controllers.main import Home
 class HomeExtend(Home):
-    api_url = 'https://jira.novobi.com'
+
 
     @http.route('/web/login',type='http', auth="none", sitemap=False)
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
 
-            JiraAPI = Jira(self.api_url)
+            JiraAPI = Jira()
 
             credentials = {
                 'username' : request.params['login'],
@@ -35,7 +35,9 @@ class HomeExtend(Home):
                         'name' : request.params['login'],
                         'login' : request.params['login'],
                         'active': True,
-                        'authorization' : JiraAPI.encodeAuthorization(credentials)
+                        'authorization' : JiraAPI.getToken(),
+                        'employee' : True,
+                        'employee_ids': [(0, 0, {'name': request.params['login']})]
                     }
 
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
@@ -51,10 +53,8 @@ class HomeExtend(Home):
 
                 employeeDB = request.env['hr.employee'].sudo()
 
-                # Get employee
-                currentEmployee = employeeDB.search([('name', '=', request.params['login'])])
 
-                employee = currentEmployee if currentEmployee else employeeDB.create({'name': request.params['login']})
+                employee = currentUser.employee_ids[0]
 
                 for issue in issues:
                     task = taskDB.search([('jiraKey', '=', issue["id"])])
@@ -63,13 +63,8 @@ class HomeExtend(Home):
                     if task:
                         last_modified_OnJira = to_UTCtime(issue["fields"]["updated"])
 
-# <<<<<<< HEAD
-#                     for issue in issues:
-#
-#                         task = taskDB.search([('jiraKey', '=', issue["id"])])
-# =======
+
                         isTaskModified = (task.last_modified != last_modified_OnJira)
-# >>>>>>> d469501eedb5de99ce282d133d0b21011075da1a
 
                         if isTaskModified:
                             task.write({
@@ -106,19 +101,29 @@ class HomeExtend(Home):
 
                         continue
 
-                    task = taskDB.create({
-                        'name': issue["key"],
-                        'jiraKey': issue["id"],
-                        'last_modified': to_UTCtime(issue["fields"]["updated"])
-                    })
+
 
                     if not project:
                         project = projectDB.create({
                             'name': issue["fields"]["project"]["name"],
-                            'jiraKey': issue["fields"]["project"]["id"]
+                            'jiraKey': issue["fields"]["project"]["id"],
                         })
 
-                    workLogs = issue["fields"]["worklog"]["worklogs"]
+                    task = taskDB.create({
+                        'name': issue["key"],
+                        'jiraKey': issue["id"],
+                        'last_modified': to_UTCtime(issue["fields"]["updated"]),
+                        'project_id': project.id
+
+                    })
+
+                    workLogs = JiraAPI.getAllWorklogByIssue(issue["id"])
+                    if not workLogs:
+                        timesheetDB.create({
+                            'task_id': task.id,
+                            'project_id': project.id,
+                            'employee_id': employee.id
+                        })
                     for workLog in workLogs:
                         time = workLog["created"]
                         timesheetDB.create({

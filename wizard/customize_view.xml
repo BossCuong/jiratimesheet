@@ -8,10 +8,9 @@
                 <form string="test">
                     <group>
                         <group>
-                            <field name="Date" />
-                            <field name="Project" />
-                            <field name="Task" />
-                            <field name="name" />
+                            <field name="Date"/>
+                            <field name="Project" readonly = "1"/>
+                            <field name="Task" readonly = "1"/>
 
                         </group>
                         <group>

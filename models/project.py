@@ -4,15 +4,17 @@ from odoo.exceptions import UserError
 class Project(models.Model):
     _inherit = "project.project"
 
-    jiraKey = fields.Char()
+    manager_id = fields.Many2one('hr.employee', "Employee")
 
+    jiraKey = fields.Char()
     user_ids = fields.Many2many('res.users', string = "user ids ")
 
 
-class Project(models.Model):
+class Task(models.Model):
     _inherit = "project.task"
 
     last_modified = fields.Datetime()
 
-    jiraKey = fields.Char()
+    status = fields.Char()
 
+    jiraKey = fields.Char()

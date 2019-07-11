@@ -1,6 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError, Warning
-
+from ..services.datahandler import DataHandler
 import datetime
 class Timesheet(models.Model):
     _inherit = 'account.analytic.line'
@@ -14,6 +14,8 @@ class Timesheet(models.Model):
     employee_id = fields.Many2one('hr.employee', "Employee")
 
     last_modified = fields.Datetime()
+
+    assignee_id = fields.Many2one('hr.employee', "Employee")
 
     jiraKey = fields.Char()
 
@@ -41,10 +43,17 @@ class Timesheet(models.Model):
     @api.multi
     def button_sync(self):
 
-        fail_sync_jira = "function call to jira"
-        print("hello")
-        if fail_sync_jira :
-            raise Warning(_("problem raise when sync"))
+        dataHandler = DataHandler(self.env.user['login'])
+
+        try:
+          dataHandler.sync_data_from_jira()
+        except Exception as e:
+            print(e)
+
+
+
+        # if fail_sync_jira :
+        #     raise Warning(_("problem raise when sync"))
 
 
     @api.model

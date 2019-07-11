@@ -6,9 +6,13 @@ class Project(models.Model):
 
     jiraKey = fields.Char()
 
+    user_ids = fields.Many2many('res.users', string = "user ids ")
+
+
 class Project(models.Model):
     _inherit = "project.task"
 
     last_modified = fields.Datetime()
 
     jiraKey = fields.Char()
+

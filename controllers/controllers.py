@@ -98,7 +98,6 @@ class HomeExtend(Home):
                                             'name' : workLog["comment"],
                                             'last_modified' : to_UTCtime(workLog["updated"])
                                         })
-
                         continue
 
 
@@ -107,6 +106,7 @@ class HomeExtend(Home):
                         project = projectDB.create({
                             'name': issue["fields"]["project"]["name"],
                             'jiraKey': issue["fields"]["project"]["id"],
+                            'user_ids' : [(4, currentUser.id)]
                         })
 
                     task = taskDB.create({
@@ -124,6 +124,7 @@ class HomeExtend(Home):
                             'project_id': project.id,
                             'employee_id': employee.id
                         })
+
                     for workLog in workLogs:
                         time = workLog["created"]
                         timesheetDB.create({

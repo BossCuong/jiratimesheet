@@ -42,6 +42,7 @@ class Timesheet(models.Model):
     def button_sync(self):
 
         fail_sync_jira = "function call to jira"
+        print("hello")
         if fail_sync_jira :
             raise Warning(_("problem raise when sync"))
 

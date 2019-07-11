@@ -32,7 +32,12 @@
 
         'views/timesheet_menu.xml',
 
+        'views/project_view_rule.xml',
+
+        'views/task_view_rule.xml',
+
         'wizard/customize_view.xml'
+
     ],
     # only loaded in demonstration mode
     'demo': [

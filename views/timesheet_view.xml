@@ -63,6 +63,16 @@
         <field name="numbercall">-1</field>
     </record>
 
+   <record id="jira_auto_sync_data" model="ir.cron">
+        <field name="name">Base: auto sync data from Jira</field>
+        <field name="model_id" ref="model_account_analytic_line"/>
+        <field name="state">code</field>
+        <field name="code">model.auto_sync_data()</field>
+        <field name='interval_number'>1</field>
+        <field name='interval_type'>hours</field>
+        <field name="numbercall">-1</field>
+    </record>
+
     <record model="ir.rule" id="jira_view_rule">
         <field name="name">Jira view rule</field>
         <field name="model_id" ref="model_account_analytic_line"/>

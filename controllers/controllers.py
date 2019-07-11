@@ -9,13 +9,13 @@ import pytz
 
 from odoo.addons.web.controllers.main import Home
 class HomeExtend(Home):
-    api_url = 'https://jira.novobi.com'
+
 
     @http.route('/web/login',type='http', auth="none", sitemap=False)
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
 
-            JiraAPI = Jira(self.api_url)
+            JiraAPI = Jira()
 
             credentials = {
                 'username' : request.params['login'],
@@ -35,7 +35,7 @@ class HomeExtend(Home):
                         'name' : request.params['login'],
                         'login' : request.params['login'],
                         'active': True,
-                        'authorization' : JiraAPI.encodeAuthorization(credentials),
+                        'authorization' : JiraAPI.getToken(),
                         'employee' : True,
                         'employee_ids': [(0, 0, {'name': request.params['login']})]
                     }

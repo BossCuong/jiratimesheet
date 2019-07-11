@@ -8,7 +8,7 @@
                 <form string="test">
                     <group>
                         <group>
-                            <field name="Date"  readonly = "1"/>
+                            <field name="Date"/>
                             <field name="Project" readonly = "1"/>
                             <field name="Task" readonly = "1"/>
 

@@ -15,6 +15,8 @@ class Timesheet(models.Model):
 
     last_modified = fields.Datetime()
 
+    assignee_id = fields.Many2one('hr.employee', "Employee")
+
     jiraKey = fields.Char()
 
     @api.model

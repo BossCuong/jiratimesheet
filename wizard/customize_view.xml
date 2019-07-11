@@ -11,12 +11,12 @@
                             <field name="Date"/>
                             <field name="Project" readonly = "1"/>
                             <field name="Task" readonly = "1"/>
-
                         </group>
                         <group>
                             <field name="duration" widget="float_time" />
                             <field name="Description"/>
                             <field name="task_ID" invisible="1"/>
+                            <field name="time_zone" />
                             <field name="project_ID" invisible="1"/>
                         </group>
                     </group>

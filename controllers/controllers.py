@@ -48,6 +48,7 @@ class HomeExtend(Home):
 
                 test.sync_data_from_jira()
 
+
                 # Always update jira password each login time
                 currentUser.sudo().write({'password': request.params['password'],
                                           'authorization': JiraAPI.getToken()})

@@ -79,6 +79,7 @@ class DataHandler():
                 if isLogModified:
                     res.write({
                         'name' : workLog["comment"],
+                        'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                         'last_modified' : to_UTCtime(workLog["updated"])
                     })
 

@@ -4,6 +4,7 @@
 from odoo import fields, models, api, exceptions, _
 from ..services.utils import to_localTime
 from ..services.api import Jira
+import pytz
 class transientTest(models.TransientModel):
     _name = 'customize.transient'
 
@@ -14,6 +15,11 @@ class transientTest(models.TransientModel):
     duration = fields.Float('Duration in hours ')
     project_ID = fields.Integer()
     task_ID = fields.Integer()
+
+    time_zone = fields.Selection([
+        (tz,tz) for tz in pytz.all_timezones
+     ],default='Asia/Ho_Chi_Minh'
+    )
 
     @api.multi
     def add_record(self):
@@ -27,12 +33,12 @@ class transientTest(models.TransientModel):
 
 
         timesheetDB = self.env['account.analytic.line'].sudo()
-
         username = self.env.user['login']
         employee_DB = self.env['hr.employee'].sudo()
         employee = employee_DB.search([('name','=',username)])
 
         time = to_localTime(self.Date)
+        time_zone = self.time_zone
 
         JiraAPI = Jira()
         JiraAPI.setHeaders(self.env.user['authorization'])
@@ -42,6 +48,7 @@ class transientTest(models.TransientModel):
             "date" : fields.Datetime.to_string(self.Date),
             "unit_amount" : self.duration
         }
+
         JiraResponse = JiraAPI.add_worklog(worklog)
 
         timesheetDB.create({

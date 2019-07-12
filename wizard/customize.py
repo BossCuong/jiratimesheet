@@ -16,10 +16,14 @@ class transientTest(models.TransientModel):
     project_ID = fields.Integer()
     task_ID = fields.Integer()
 
-    time_zone = fields.Selection([
-        (tz,tz) for tz in pytz.all_timezones
-     ],default='Asia/Ho_Chi_Minh'
+    time_zone = fields.Selection(selection = lambda self : self._compute_timezone(),
+        default='0'
     )
+
+    def _compute_timezone(self):
+        timezone_selection = [(x,x) for x in pytz.all_timezone]
+        timezone_selection.append((0,self.env.user['tz']))
+        return timezone_selection
 
     @api.multi
     def add_record(self):

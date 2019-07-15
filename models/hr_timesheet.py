@@ -50,8 +50,6 @@ class Timesheet(models.Model):
         except Exception as e:
             print(e)
 
-
-
         # if fail_sync_jira :
         #     raise Warning(_("problem raise when sync"))
 

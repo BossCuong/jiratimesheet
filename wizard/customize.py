@@ -37,19 +37,19 @@ class transientTest(models.TransientModel):
         employee_DB = self.env['hr.employee'].sudo()
         employee = employee_DB.search([('name','=',username)])
 
-        time = to_localTime(self.Date)
-        time_zone = self.time_zone
-
-        JiraAPI = Jira()
-        JiraAPI.setHeaders(self.env.user['authorization'])
-        worklog = {
-            "task_key" : self.Task,
-            "description" : self.Description,
-            "date" : fields.Datetime.to_string(self.Date),
-            "unit_amount" : self.duration
-        }
-
-        JiraResponse = JiraAPI.add_worklog(worklog)
+        # time = to_localTime(self.Date)
+        # time_zone = self.time_zone
+        #
+        # JiraAPI = Jira()
+        # JiraAPI.setHeaders(self.env.user['authorization'])
+        # worklog = {
+        #     "task_key" : self.Task,
+        #     "description" : self.Description,
+        #     "date" : fields.Datetime.to_string(self.Date),
+        #     "unit_amount" : self.duration
+        # }
+        #
+        # JiraResponse = JiraAPI.add_worklog(worklog)
 
         timesheetDB.create({
             'task_id': self.task_ID,

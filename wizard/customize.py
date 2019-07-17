@@ -21,7 +21,7 @@ class transientTest(models.TransientModel):
     )
 
     def _compute_timezone(self):
-        timezone_selection = [(x,x) for x in pytz.all_timezone]
+        timezone_selection = [(x,x) for x in pytz.all_timezones]
         timezone_selection.append((0,self.env.user['tz']))
         return timezone_selection
 
@@ -41,20 +41,6 @@ class transientTest(models.TransientModel):
         employee_DB = self.env['hr.employee'].sudo()
         employee = employee_DB.search([('name','=',username)])
 
-        time = to_localTime(self.Date)
-        time_zone = self.time_zone
-
-        JiraAPI = Jira()
-        JiraAPI.setHeaders(self.env.user['authorization'])
-        worklog = {
-            "task_key" : self.Task,
-            "description" : self.Description,
-            "date" : fields.Datetime.to_string(self.Date),
-            "unit_amount" : self.duration
-        }
-
-        JiraResponse = JiraAPI.add_worklog(worklog)
-
         timesheetDB.create({
             'task_id': self.task_ID,
             'project_id': self.project_ID,
@@ -62,7 +48,7 @@ class transientTest(models.TransientModel):
             'unit_amount': self.duration ,
             'description' : self.Description,
             'name' : self.Description,
-            'date': time
+            'date': self.Date
         })
 
         action = self.env.ref('jiratimesheet.action_timesheet_views').read()[0]

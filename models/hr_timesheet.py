@@ -43,7 +43,6 @@ class Timesheet(models.Model):
     @api.model
     def auto_sync_data(self):
         dataHandler = DataHandler(self.env.user['login'])
-
         try:
           dataHandler.sync_data_from_jira()
         except Exception as e:

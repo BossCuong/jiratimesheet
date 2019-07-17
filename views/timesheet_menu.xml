@@ -8,11 +8,12 @@
         id="action_timesheet_views">
         <field name="name">jira timesheet</field>
         <field name="res_model">account.analytic.line</field>
-        <field name="view_mode">grid,tree</field>
+        <field name="view_mode">grid,graph,list</field>
         <field name="view_id" ref="timesheet_line_grid"/>
+<!--        <field name="view_id" ref="timesheet_jira_report_view_graph"/>-->
+
 <!--        <field name = "domain">[('unit_amount','>',0)]</field>-->
     </record>
-
     <menuitem id = "menu_timesheet_views"
               name = "Views"
               action = "action_timesheet_views"

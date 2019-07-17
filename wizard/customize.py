@@ -21,8 +21,8 @@ class transientTest(models.TransientModel):
     )
 
     def _compute_timezone(self):
-        timezone_selection = [(x,x) for x in pytz.all_timezone]
-        timezone_selection.append((0,self.env.user['tz']))
+        timezone_selection = [(x,x) for x in pytz.all_timezones]
+        # timezone_selection.append((0,self.env.user['tz']))
         return timezone_selection
 
     @api.multi

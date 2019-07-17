@@ -94,6 +94,8 @@ class DataHandler():
     def sync_data_from_jira(self):
         issues = self.JiraAPI.getAllIssues()
 
+        print(issues)
+
         for issue in issues:
             task = self.__find_task(issue)
             project = self.__find_project(issue)

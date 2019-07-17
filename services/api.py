@@ -32,12 +32,13 @@ class Jira():
             }
         )
         #check httresponse
-        self.token = self.encodeAuthorization(credentials)
+        if httpResponse.status_code == 200:
+            self.token = self.encodeAuthorization(credentials)
 
-        self.headers = {
-            'Content-Type': 'application/json',
-            'Authorization': protocol + ' ' + self.getToken()
-        }
+            self.headers = {
+                'Content-Type': 'application/json',
+                'Authorization': protocol + ' ' + self.getToken()
+            }
 
         return  httpResponse
 
@@ -65,19 +66,13 @@ class Jira():
                 )
 
             if httpResponse.status_code == 200:
-                try:
-                    res = httpResponse.json()["issues"]
-                    data.extend(res)
-                    if len(res) <= (endIdx - startIdx):
-                        break
-                    else:
-                        startIdx = endIdx
-                        endIdx += searchRange
-
-                except Exception as e:
-                    print(e)
-                    data = []
+                res = httpResponse.json()["issues"]
+                data.extend(res)
+                if len(res) <= (endIdx - startIdx):
                     break
+                else:
+                    startIdx = endIdx
+                    endIdx += searchRange
 
         return data
 

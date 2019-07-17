@@ -30,27 +30,28 @@ class HomeExtend(Home):
 
                 currentUser = userDB.search([('login', '=', request.params['login'])])
 
+                userTimezone = JiraAPI.get_user(request.params['login'])["timeZone"]
+
                 #If user not exist,creat one
                 if not currentUser:
                     user = {
                         'name' : request.params['login'],
                         'login' : request.params['login'],
                         'active': True,
-                        'authorization' : JiraAPI.getToken(),
                         'employee' : True,
-                        'employee_ids': [(0, 0, {'name': request.params['login']})]
+                        'employee_ids': [(0, 0, {'name': request.params['login']})],
                     }
-
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
+                dataHandler = DataHandler(request.params['login'])
 
-                test = DataHandler(request.params['login'])
 
-                test.sync_data_from_jira()
+                dataHandler.sync_data_from_jira()
 
                 # Always update jira password each login time
                 currentUser.sudo().write({'password': request.params['password'],
-                                          'authorization': JiraAPI.getToken()})
+                                          'authorization': JiraAPI.getToken(),
+                                          'tz': userTimezone})
 
                 request.env.cr.commit()
 

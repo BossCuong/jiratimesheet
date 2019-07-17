@@ -126,3 +126,16 @@ class Jira():
             return httpResponse.json()
         else:
             return None
+
+    def get_user(self, username):
+        reponse = requests.get(
+            url=self.url + "/rest/api/2/user",
+            headers=self.headers,
+            params={
+                "username": username
+            }
+        )
+        if reponse.status_code == 200:
+            return reponse.json()
+        else:
+            return None

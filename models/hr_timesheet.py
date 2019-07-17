@@ -71,26 +71,26 @@ class Timesheet(models.Model):
         # put code sync to Jira here
         # if fail return pop
 
-        if vals.get("is_sync_on_jira"):
-            if not self.env.user["authorization"]:
-                raise UserError(_("Please authenticated"))
-
-            JiraAPI = Jira(self.env.user["authorization"])
-            task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
-
-            agr = {
-                'task_key': task.key,
-                'description': vals["name"],
-                'date': vals["date"],
-                'unit_amount': vals["unit_amount"]
-            }
-
-            response = JiraAPI.add_worklog(agr)
-            if not response:
-                raise UserError(_("Fail to update"))
-
-
-            vals.update({'last_modified': response["updated"]})
+        # if vals.get("is_sync_on_jira"):
+        #     if not self.env.user["authorization"]:
+        #         raise UserError(_("Please authenticated"))
+        #
+        #     JiraAPI = Jira(self.env.user["authorization"])
+        #     task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
+        #
+        #     agr = {
+        #         'task_key': task.key,
+        #         'description': vals["name"],
+        #         'date': vals["date"],
+        #         'unit_amount': vals["unit_amount"]
+        #     }
+        #
+        #     response = JiraAPI.add_worklog(agr)
+        #     if not response:
+        #         raise UserError(_("Fail to update"))
+        #
+        #
+        #     vals.update({'last_modified': response["updated"]})
 
 
         return super(Timesheet, self).create(vals)

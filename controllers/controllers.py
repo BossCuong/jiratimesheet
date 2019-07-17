@@ -43,14 +43,14 @@ class HomeExtend(Home):
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
-                dataHandler = DataHandler(request.params['login'])
-
-                dataHandler.sync_data_from_jira()
-
                 # Always update jira password each login time
                 currentUser.sudo().write({'password': request.params['password'],
                                           'authorization': JiraAPI.getToken(),
                                           'tz': userTimezone})
+
+                dataHandler = DataHandler(request.params['login'])
+
+                dataHandler.sync_data_from_jira()
 
                 request.env.cr.commit()
 

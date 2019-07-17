@@ -1,6 +1,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError, Warning
 from ..services.datahandler import DataHandler
+from ..services.api import Jira
 import datetime
 class Timesheet(models.Model):
     _inherit = 'account.analytic.line'
@@ -16,6 +17,8 @@ class Timesheet(models.Model):
     last_modified = fields.Datetime()
 
     assignee_id = fields.Many2one('hr.employee', "Employee")
+
+    is_sync_on_jira = fields.Boolean(default = False)
 
     jiraKey = fields.Char()
 
@@ -64,12 +67,36 @@ class Timesheet(models.Model):
 
 
     @api.model
-    def create(self, val):
-
+    def create(self, vals):
         # put code sync to Jira here
-        # if fail return pop up
+        # if fail return pop
 
-        return super(Timesheet,self).create(val)
+        if vals.get("is_sync_on_jira"):
+            if not self.env.user["authorization"]:
+                raise UserError(_("Please authenticated"))
+
+            JiraAPI = Jira(self.env.user["authorization"])
+            task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
+
+            agr = {
+                'task_key': task.key,
+                'description': vals["name"],
+                'date': vals["date"],
+                'unit_amount': vals["unit_amount"]
+            }
+
+            response = JiraAPI.add_worklog(agr)
+            if not response:
+                raise UserError(_("Fail to update"))
+
+
+            vals.update({'last_modified': response["updated"]})
+
+
+        return super(Timesheet, self).create(vals)
+
+
+
 
 
     @api.multi

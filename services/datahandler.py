@@ -59,7 +59,7 @@ class DataHandler():
             self.timesheetDB.create({
                 'task_id': task_id,
                 'project_id': project_id,
-                'employee_id': self.user.employee_ids[0].id
+                'employee_id': self.user.employee_ids[0].id,
             })
         else:
             for workLog in workLogs:

@@ -20,12 +20,20 @@ class DataHandler():
 
         self.projectDB = request.env['project.project'].sudo()
 
+        self.userDB = request.env['res.users'].sudo().with_context(active_test=False)
+
     def __create_project(self,data):
         project_info = data["fields"]["project"]
+
+        project_detail = self.JiraAPI.get_project(project_info["key"])
+
+        project_lead = self.__add_user(project_detail["lead"]["name"])
 
         project = self.projectDB.create({
                     'name': project_info["name"],
                     'jiraKey': project_info["id"],
+                    'user_id' : project_lead.id,
+                    'user_ids': [(4, self.user.id, 0)]
                 })
         return project
 
@@ -37,6 +45,21 @@ class DataHandler():
             'project_id': project_id
         })
         return task
+
+    def __add_user(self,userName):
+        currentUser = self.userDB.search([('login', '=', userName)])
+
+        if not currentUser:
+            user = {
+                'name': userName,
+                'login': userName,
+                'active': True,
+                'employee': True,
+                'employee_ids': [(0, 0, {'name': userName})],
+            }
+            currentUser = request.env.ref('base.default_user').sudo().copy(user)
+
+        return currentUser
 
     def __create_worklog(self,project_id,task_id,worklog_info):
         worklog = self.timesheetDB.create({
@@ -94,11 +117,12 @@ class DataHandler():
     def sync_data_from_jira(self):
         issues = self.JiraAPI.getAllIssues()
 
-        print(issues)
-
         for issue in issues:
             task = self.__find_task(issue)
             project = self.__find_project(issue)
+
+            if project:
+                project.sudo().write({'user_ids': [(4, self.user.id, 0)]})
 
             if task:
                 last_modified = to_UTCtime(issue["fields"]["updated"])
@@ -118,6 +142,8 @@ class DataHandler():
             task = self.__create_task(project.id,issue)
 
             self.__create_all_worklog_by_issue(project.id,task.id,issue)
+
+        request.env.cr.commit()
 
 
 

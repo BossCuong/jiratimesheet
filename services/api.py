@@ -90,17 +90,20 @@ class Jira():
 
         return data
 
+
     def get_project(self,project_key):
         httpResponse = requests.get(
             url=self.url + "/rest/api/2/project/%s" % (project_key),
             headers=self.headers
         )
 
-        try:
-            data = httpResponse.json()
-        except Exception as e:
-            print(e)
-            data = []
+        data = []
+        if httpResponse.status_code == 200:
+            try:
+                data = httpResponse.json()
+            except Exception as e:
+                print(e)
+                data = []
 
         return data
 

@@ -1,7 +1,7 @@
 from odoo import http
 from odoo.http import request
 from .api import Jira
-from .utils import to_UTCtime
+from .utils import to_UTCtime,to_localTime
 
 
 class DataHandler():
@@ -20,16 +20,25 @@ class DataHandler():
 
         self.projectDB = request.env['project.project'].sudo()
 
+        self.userDB = request.env['res.users'].sudo().with_context(active_test=False)
+
     def __create_project(self,data):
         project_info = data["fields"]["project"]
+
+        project_detail = self.JiraAPI.get_project(project_info["key"])
+
+        project_lead = self.__add_user(project_detail["lead"]["name"])
 
         project = self.projectDB.create({
                     'name': project_info["name"],
                     'jiraKey': project_info["id"],
+                    'user_id' : project_lead.id,
+                    'user_ids': [(4, self.user.id, 0)]
                 })
         return project
 
     def __create_task(self,project_id,data):
+
         task = self.taskDB.create({
             'name': data["key"],
             'jiraKey': data["id"],
@@ -38,14 +47,33 @@ class DataHandler():
         })
         return task
 
+    def __add_user(self,userName):
+        currentUser = self.userDB.search([('login', '=', userName)])
+
+        if not currentUser:
+            user = {
+                'name': userName,
+                'login': userName,
+                'active': True,
+                'employee': True,
+                'employee_ids': [(0, 0, {'name': userName})],
+            }
+            currentUser = request.env.ref('base.default_user').sudo().copy(user)
+
+        return currentUser
+
     def __create_worklog(self,project_id,task_id,worklog_info):
+        time = to_UTCtime(worklog_info["started"])
+
+        time = to_localTime(time,self.env.user["tz"])
+
         worklog = self.timesheetDB.create({
                                 'task_id': task_id,
                                 'project_id': project_id,
                                 'employee_id': self.user.employee_ids[0].id,
                                 'unit_amount': worklog_info["timeSpentSeconds"] / (60 * 60),
                                 'name': worklog_info["comment"],
-                                'date': to_UTCtime(worklog_info["started"]),
+                                'date': time,
                                 'last_modified': to_UTCtime(worklog_info["updated"]),
                                 'jiraKey': worklog_info["id"]
                             })
@@ -94,11 +122,12 @@ class DataHandler():
     def sync_data_from_jira(self):
         issues = self.JiraAPI.getAllIssues()
 
-        print(issues)
-
         for issue in issues:
             task = self.__find_task(issue)
             project = self.__find_project(issue)
+
+            if project:
+                project.sudo().write({'user_ids': [(4, self.user.id, 0)]})
 
             if task:
                 last_modified = to_UTCtime(issue["fields"]["updated"])
@@ -118,6 +147,8 @@ class DataHandler():
             task = self.__create_task(project.id,issue)
 
             self.__create_all_worklog_by_issue(project.id,task.id,issue)
+
+        request.env.cr.commit()
 
 
 

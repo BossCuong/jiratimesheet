@@ -76,10 +76,12 @@ class Timesheet(models.Model):
             JiraAPI = Jira(self.env.user["authorization"])
             task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
 
+            time = vals["date"].strftime("%Y-%m-%dT%H:%M:%S.000%z")
+
             arg = {
                 'task_key': task.name,
                 'description': vals["name"],
-                'date': str(vals["date"]),
+                'date': time,
                 'unit_amount': vals["unit_amount"]
             }
 

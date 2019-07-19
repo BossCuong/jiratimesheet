@@ -1,7 +1,7 @@
 from odoo import http
 from odoo.http import request
 from .api import Jira
-from .utils import to_UTCtime
+from .utils import to_UTCtime,to_localTime
 
 
 class DataHandler():
@@ -38,6 +38,7 @@ class DataHandler():
         return project
 
     def __create_task(self,project_id,data):
+
         task = self.taskDB.create({
             'name': data["key"],
             'jiraKey': data["id"],
@@ -62,13 +63,17 @@ class DataHandler():
         return currentUser
 
     def __create_worklog(self,project_id,task_id,worklog_info):
+        time = to_UTCtime(worklog_info["started"])
+
+        time = to_localTime(time,self.env.user["tz"])
+
         worklog = self.timesheetDB.create({
                                 'task_id': task_id,
                                 'project_id': project_id,
                                 'employee_id': self.user.employee_ids[0].id,
                                 'unit_amount': worklog_info["timeSpentSeconds"] / (60 * 60),
                                 'name': worklog_info["comment"],
-                                'date': to_UTCtime(worklog_info["started"]),
+                                'date': time,
                                 'last_modified': to_UTCtime(worklog_info["updated"]),
                                 'jiraKey': worklog_info["id"]
                             })

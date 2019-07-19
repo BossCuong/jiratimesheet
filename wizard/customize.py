@@ -37,7 +37,7 @@ class transientTest(models.TransientModel):
             'task_id': self.task_ID,
             'project_id': self.project_ID,
             'employee_id': employee.id,
-            'unit_amount': self.duration ,
+            'unit_amount': self.duration,
             'description' : self.Description,
             'name' : self.Description,
             'date': time,

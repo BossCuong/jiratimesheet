@@ -109,17 +109,14 @@ class Jira():
 
     def add_worklog(self, arg):
 
-        data = json.dumps({
+        httpResponse = requests.post(
+            url=self.url + "/rest/api/2/issue/%s/worklog" %(arg["task_key"]),
+            headers=self.headers,
+            json={
                 "comment": arg["description"],
                 "started": arg["date"],
                 "timeSpentSeconds": int(arg["unit_amount"]*60*60)
             }
-        )
-
-        httpResponse = requests.post(
-            url=self.url + "/rest/api/2/issue/%s/worklog" %(agr["task_key"]),
-            headers=self.headers,
-            json=data
         )
 
         if httpResponse.status_code == 201:

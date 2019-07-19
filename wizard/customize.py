@@ -16,15 +16,6 @@ class transientTest(models.TransientModel):
     project_ID = fields.Integer()
     task_ID = fields.Integer()
 
-    time_zone = fields.Selection(selection = lambda self : self._compute_timezone(),
-        default='0'
-    )
-
-    def _compute_timezone(self):
-        timezone_selection = [(x,x) for x in pytz.all_timezones]
-        timezone_selection.append((0,self.env.user['tz']))
-        return timezone_selection
-
     @api.multi
     def add_record(self):
         self.ensure_one()
@@ -35,11 +26,12 @@ class transientTest(models.TransientModel):
         if self.Description == "":
             raise exceptions.UserError(_("Oohh, you forget filling Description field "))
 
-
-        timesheetDB = self.env['account.analytic.line'].sudo()
+        timesheetDB = self.env['account.analytic.line']
         username = self.env.user['login']
         employee_DB = self.env['hr.employee'].sudo()
         employee = employee_DB.search([('name','=',username)])
+
+        time = to_localTime(self.Date,self.env.user.tz)
 
         timesheetDB.create({
             'task_id': self.task_ID,
@@ -48,7 +40,8 @@ class transientTest(models.TransientModel):
             'unit_amount': self.duration ,
             'description' : self.Description,
             'name' : self.Description,
-            'date': self.Date
+            'date': time,
+            "is_sync_on_jira" : True
         })
 
         action = self.env.ref('jiratimesheet.action_timesheet_views').read()[0]

@@ -18,9 +18,13 @@ def to_UTCtime(timeStr):
 
     return timeOdoo
 
-def to_localTime(utcTime):
+def to_localTime(utcTime,timeZone):
+    if not timeZone:
+        timeZone = 'Asia/Ho_Chi_Minh'
+
     from_zone = tz.tzutc()
-    to_zone = tz.gettz('Asia/Ho_Chi_Minh')
+
+    to_zone = tz.gettz(timeZone)
 
     utcTime = utcTime.replace(tzinfo=from_zone)
 

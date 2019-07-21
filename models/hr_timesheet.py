@@ -52,6 +52,8 @@ class Timesheet(models.Model):
 
     @api.multi
     def button_sync(self):
+        if not self.env.user["authorization"]:
+            raise UserError(_("Please authenticated"))
 
         dataHandler = DataHandler(self.env.user['login'])
 

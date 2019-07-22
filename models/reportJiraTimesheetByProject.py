@@ -16,6 +16,10 @@ class reportJiraTimesheet(models.AbstractModel):
     @api.model
     def _get_lines(self, options, line_id = None):
         lines = []
+        date_from = options['date']['date_from']
+        date_to = options['date']['date_to']
+        print(type(date_from),date_to)
+
         # user_type_id = self.env['account.account.type'].search([('type', '=', 'receivable')])
         # username = self.env.user['login']
         # employee_DB = self.env['hr.employee'].sudo()
@@ -28,6 +32,8 @@ class reportJiraTimesheet(models.AbstractModel):
                        "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
                 FROM account_analytic_line, project_project
                 WHERE  "account_analytic_line".project_id = "project_project".id
+                AND "account_analytic_line".date >= '""" + date_from + """'
+                AND "account_analytic_line".date <= '""" + date_to + """'
                 GROUP BY "project_project".id
             """
 
@@ -43,8 +49,15 @@ class reportJiraTimesheet(models.AbstractModel):
                     'level' : 2,
                     'unfoldable' : True,
                     'unfolded' : str(line_id) == '1_'+str(line.get('id')) and True or False,
-                    'columns' : [{'name' : line.get('name'), 'name' : line.get('total')}],
+                    'columns' : [{'name' : line.get('name'), 'name' : round(line.get('total'),3)}],
                 })
+            lines.append({
+                'id' : 'total',
+                'name' : _('Total'),
+                'level' : 0,
+                'class' : 'total',
+                'columns' : [{'name' : round(total,3)}]
+            })
 
         if line_id :
             sql_query = """
@@ -52,6 +65,8 @@ class reportJiraTimesheet(models.AbstractModel):
                        "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
                 FROM account_analytic_line, project_project
                 WHERE  "account_analytic_line".project_id = "project_project".id
+                AND "account_analytic_line".date >= '""" + date_from + """'
+                AND "account_analytic_line".date <= '""" + date_to + """'
                 GROUP BY "project_project".id
             """
 
@@ -68,14 +83,16 @@ class reportJiraTimesheet(models.AbstractModel):
                         'level': 2,
                         'unfoldable': True,
                         'unfolded': str(line_id) == '1_' + str(line.get('id')) and True or False,
-                        'columns': [{'name': line.get('name'), 'name': line.get('total')}],
+                        'columns': [{'name': line.get('name'), 'name': round(line.get('total'),3)}],
                     })
             query_task = """
                 SELECT
-                       "project_task".name, "project_task".id, sum("account_analytic_line".unit_amount) as total
+                       "project_task".name, "project_task".id,sum("account_analytic_line".unit_amount) as total
                 FROM account_analytic_line LEFT JOIN project_task
                 ON "account_analytic_line".task_id = "project_task".id 
                 AND "account_analytic_line".project_id = """ + line_id[2:] + """
+                WHERE "account_analytic_line".date >= '""" + date_from + """'
+                AND "account_analytic_line".date <= '""" + date_to + """'
                 GROUP BY "project_task".id
             """
 
@@ -92,9 +109,15 @@ class reportJiraTimesheet(models.AbstractModel):
                     'parent_id': line_id,
                     'level': 3,
                     'unfoldable' : False,
-                    'columns': [{'name': line_task.get('name'), 'name': line_task.get('total')}]
+                    'columns': [{'name': line_task.get('name'), 'name': round(line_task.get('total'),3)}]
             })
-
+            # lines.append({
+            #     'id' : 'total',
+            #     'name' : _('Total'),
+            #     'level' : 0,
+            #     'class' : 'total',
+            #     'columns' : [{'name' : round(total,3)}]
+            # })
 
 
 

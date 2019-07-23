@@ -97,8 +97,14 @@ class DataHandler():
         #Update worklog
         workLogs = self.JiraAPI.getAllWorklogByIssue(data["id"])
 
+        #Set up worklog id list to consider delete on db
+        worklog_id_dic = {}
+
         for workLog in workLogs:
+            worklog_id_dic[workLog["id"]] = True
+
             res = self.timesheetDB.search([('jiraKey', '=', workLog["id"])])
+
             if not res:
                 self.__create_worklog(project_id,task_id,workLog)
             else:
@@ -111,6 +117,16 @@ class DataHandler():
                         'last_modified' : to_UTCtime(workLog["updated"])
                     })
 
+        # Delete worklog on odoo db
+        for workLog in self.timesheetDB.search([('task_id','=',task_id)]):
+            #Skip aug data
+            if not workLog['jiraKey']:
+                continue
+
+            workLog_key = workLog['jiraKey']
+
+            if not worklog_id_dic.get(workLog_key):
+                workLog.unlink()
 
     def __find_task(self,data):
         return self.taskDB.search([('jiraKey', '=', data["id"])])
@@ -149,6 +165,5 @@ class DataHandler():
             self.__create_all_worklog_by_issue(project.id,task.id,issue)
 
         request.env.cr.commit()
-
 
 

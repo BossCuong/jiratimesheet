@@ -109,7 +109,6 @@ class Jira():
         return data
 
     def add_worklog(self, arg):
-
         httpResponse = requests.post(
             url=self.url + "/rest/api/2/issue/%s/worklog" %(arg["task_key"]),
             headers=self.headers,
@@ -121,8 +120,6 @@ class Jira():
         )
 
         if httpResponse.status_code == 201:
-            print("Add Worklog OK!")
-            print(httpResponse)
             return httpResponse.json()
         else:
             return None

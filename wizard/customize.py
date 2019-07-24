@@ -33,7 +33,7 @@ class transientTest(models.TransientModel):
 
         time = to_localTime(self.Date,self.env.user.tz)
 
-        timesheetDB.create({
+        timesheetDB.with_context(_is_sync_on_jira=True).create({
             'task_id': self.task_ID,
             'project_id': self.project_ID,
             'employee_id': employee.id,
@@ -41,7 +41,6 @@ class transientTest(models.TransientModel):
             'description' : self.Description,
             'name' : self.Description,
             'date': time,
-            "is_sync_on_jira" : True
         })
 
         action = self.env.ref('jiratimesheet.action_timesheet_views').read()[0]

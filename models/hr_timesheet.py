@@ -67,12 +67,11 @@ class Timesheet(models.Model):
     def create(self, vals):
         # put code sync to Jira here
         # if fail return pop
-
-        if vals.get("is_sync_on_jira"):
+        if self.env.context.get("_is_sync_on_jira"):
             if not self.env.user["authorization"]:
                 raise UserError(_("Please authenticated"))
 
-            JiraAPI = Jira(self.env.user["authorization"])
+            JiraAPI = Jira(self.env.user.get_authorization())
             task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
 
             time = vals["date"].strftime("%Y-%m-%dT%H:%M:%S.000%z")
@@ -90,8 +89,6 @@ class Timesheet(models.Model):
                 vals.update({'last_modified': to_UTCtime(httpResponse["updated"])})
             else:
                 raise UserError(_("Falled to update"))
-
-            del vals["is_sync_on_jira"]
 
         return super(Timesheet, self).create(vals)
 

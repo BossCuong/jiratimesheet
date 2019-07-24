@@ -12,7 +12,7 @@ class DataHandler():
 
         self.user = currentUser
 
-        self.JiraAPI = Jira(currentUser.authorization)
+        self.JiraAPI = Jira(currentUser.get_authorization())
 
         self.timesheetDB = request.env['account.analytic.line'].sudo()
 

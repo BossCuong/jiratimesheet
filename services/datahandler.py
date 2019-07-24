@@ -68,10 +68,12 @@ class DataHandler():
 
         time = to_localTime(time,request.env.user["tz"])
 
+        author = self.__add_user(worklog_info["author"]["key"])
+
         worklog = self.timesheetDB.create({
                                 'task_id': task_id,
                                 'project_id': project_id,
-                                'employee_id': self.user.employee_ids[0].id,
+                                'employee_id': author.employee_ids[0].id,
                                 'unit_amount': worklog_info["timeSpentSeconds"] / (60 * 60),
                                 'name': worklog_info["comment"],
                                 'date': time,

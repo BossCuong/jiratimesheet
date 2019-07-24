@@ -41,7 +41,6 @@ class HomeExtend(Home):
                 #If user not exist,creat one
                 if not currentUser:
                     user = {
-                        'name' : user_display_name,
                         'login' : request.params['login'],
                         'active': True,
                         'employee' : True,
@@ -57,7 +56,8 @@ class HomeExtend(Home):
                 # Always update jira password each login time
                 currentUser.sudo().write({'password': request.params['password'],
                                           'authorization': authorization,
-                                          'tz': user_timezone})
+                                          'tz': user_timezone,
+                                          'name' : user_display_name})
 
                 dataHandler = DataHandler(request.params['login'])
 

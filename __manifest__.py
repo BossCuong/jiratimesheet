@@ -36,7 +36,9 @@
 
         'views/task_view_rule.xml',
 
-        'wizard/customize_view.xml'
+        'wizard/customize_view.xml',
+
+        'views/search_template_view.xml'
 
     ],
     # only loaded in demonstration mode

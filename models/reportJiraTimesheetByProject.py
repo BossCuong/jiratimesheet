@@ -19,23 +19,112 @@ class reportJiraTimesheet(models.AbstractModel):
         date_from = options['date']['date_from']
         date_to = options['date']['date_to']
         print(type(date_from),date_to)
+        context = self.env.context
+        if context.get('print_mode') is None :
+            if line_id == None :
+                sql_query = """
+                    SELECT
+                           "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
+                    FROM account_analytic_line, project_project
+                    WHERE  "account_analytic_line".project_id = "project_project".id
+                    AND "account_analytic_line".date >= '""" + date_from + """'
+                    AND "account_analytic_line".date <= '""" + date_to + """'
+                    GROUP BY "project_project".id
+                """
 
-        # user_type_id = self.env['account.account.type'].search([('type', '=', 'receivable')])
-        # username = self.env.user['login']
-        # employee_DB = self.env['hr.employee'].sudo()
-        # employee_id = employee_DB.search([('name','=',username)])
+                self.env.cr.execute(sql_query)
+                results = self.env.cr.dictfetchall()
 
-        # print(tables, where_clause, where_params)
-        if line_id == None :
+                total = 0
+                for line in results:
+                    total += line.get('total')
+                    lines.append({
+                        'id' : "1_" + str(line.get('id')),
+                        'name' : line.get('name'),
+                        'level' : 2,
+                        'unfoldable' : True,
+                        'unfolded' : str(line_id) == '1_'+str(line.get('id')) and True or False,
+                        'columns' : [{'name' : line.get('name'), 'name' : round(line.get('total'),3)}],
+                    })
+                lines.append({
+                    'id' : 'total',
+                    'name' : _('Total'),
+                    'level' : 0,
+                    'class' : 'total',
+                    'columns' : [{'name' : round(total,3)}]
+                })
+
+            if line_id :
+                sql_query = """
+                    SELECT
+                           "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
+                    FROM account_analytic_line, project_project
+                    WHERE  "account_analytic_line".project_id = "project_project".id
+                    AND "account_analytic_line".date >= '""" + date_from + """'
+                    AND "account_analytic_line".date <= '""" + date_to + """'
+                    GROUP BY "project_project".id
+                """
+
+                self.env.cr.execute(sql_query)
+                results = self.env.cr.dictfetchall()
+
+                total = 0
+                for line in results:
+                    for line in results:
+                        total += line.get('total')
+                        lines.append({
+                            'id': "1_" + str(line.get('id')) ,
+                            'name': line.get('name'),
+                            'level': 2,
+                            'unfoldable': True,
+                            'unfolded': str(line_id) == '1_' + str(line.get('id')) and True or False,
+                            'columns': [{'name': line.get('name'), 'name': round(line.get('total'),3)}],
+                        })
+                query_task = """
+                    SELECT
+                           "project_task".name, "project_task".id,sum("account_analytic_line".unit_amount) as total
+                    FROM account_analytic_line LEFT JOIN project_task
+                    ON "account_analytic_line".task_id = "project_task".id 
+                    AND "account_analytic_line".project_id = """ + line_id[2:] + """
+                    WHERE "account_analytic_line".date >= '""" + date_from + """'
+                    AND "account_analytic_line".date <= '""" + date_to + """'
+                    GROUP BY "project_task".id
+                """
+
+                self.env.cr.execute(query_task)
+                results_task = self.env.cr.dictfetchall()
+
+                for line_task in results_task:
+                    if line_task.get('total') < 0.00000001:
+                        continue
+                    line_task_check = '2_' + str(line_task.get('id'))
+                    lines.append({
+                        'id': "2_" + str(line.get('id')),
+                        'name': line_task.get('name'),
+                        'parent_id': line_id,
+                        'level': 3,
+                        'unfoldable' : False,
+                        'columns': [{'name': line_task.get('name'), 'name': round(line_task.get('total'),3)}]
+                })
+                # lines.append({
+                #     'id' : 'total',
+                #     'name' : _('Total'),
+                #     'level' : 0,
+                #     'class' : 'total',
+                #     'columns' : [{'name' : round(total,3)}]
+                # })
+            return lines
+
+        else :
             sql_query = """
-                SELECT
-                       "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
-                FROM account_analytic_line, project_project
-                WHERE  "account_analytic_line".project_id = "project_project".id
-                AND "account_analytic_line".date >= '""" + date_from + """'
-                AND "account_analytic_line".date <= '""" + date_to + """'
-                GROUP BY "project_project".id
-            """
+                    SELECT
+                           "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
+                    FROM account_analytic_line, project_project
+                    WHERE  "account_analytic_line".project_id = "project_project".id
+                    AND "account_analytic_line".date >= '""" + date_from + """'
+                    AND "account_analytic_line".date <= '""" + date_to + """'
+                    GROUP BY "project_project".id
+                """
 
             self.env.cr.execute(sql_query)
             results = self.env.cr.dictfetchall()
@@ -44,12 +133,44 @@ class reportJiraTimesheet(models.AbstractModel):
             for line in results:
                 total += line.get('total')
                 lines.append({
-                    'id' : "1_" + str(line.get('id')),
-                    'name' : line.get('name'),
-                    'level' : 2,
-                    'unfoldable' : True,
-                    'unfolded' : str(line_id) == '1_'+str(line.get('id')) and True or False,
-                    'columns' : [{'name' : line.get('name'), 'name' : round(line.get('total'),3)}],
+                    'id': str(line.get('id')),
+                    'name': line.get('name'),
+                    'level': 2,
+                    'unfoldable': True,
+                    'unfolded':  True,
+                    'columns': [{'name': line.get('name'), 'name': round(line.get('total'), 3)}],
+                })
+            lines.append({
+                'id': 'total',
+                'name': _('Total'),
+                'level': 0,
+                'class': 'total',
+                'columns': [{'name': round(total, 3)}]
+            })
+
+            query_task = """
+                    SELECT
+                           "project_task".name, "project_task".id, "project_task".project_id,sum("account_analytic_line".unit_amount) as total
+                    FROM account_analytic_line LEFT JOIN project_task
+                    ON "account_analytic_line".task_id = "project_task".id 
+                    WHERE "account_analytic_line".date >= '""" + date_from + """'
+                    AND "account_analytic_line".date <= '""" + date_to + """'
+                    GROUP BY "project_task".id
+                """
+
+            self.env.cr.execute(query_task)
+            results_task = self.env.cr.dictfetchall()
+
+            for line_task in results_task:
+                if line_task.get('total') < 0.00000001:
+                    continue
+                lines.append({
+                    'id': str(line_task.get('id')),
+                    'name': line_task.get('name'),
+                    'parent_id': line_task.get('project_id'),
+                    'level': 3,
+                    'unfoldable': False,
+                    'columns': [{'name': line_task.get('name'), 'name': round(line_task.get('total'), 3)}]
                 })
             lines.append({
                 'id' : 'total',
@@ -58,67 +179,4 @@ class reportJiraTimesheet(models.AbstractModel):
                 'class' : 'total',
                 'columns' : [{'name' : round(total,3)}]
             })
-
-        if line_id :
-            sql_query = """
-                SELECT
-                       "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
-                FROM account_analytic_line, project_project
-                WHERE  "account_analytic_line".project_id = "project_project".id
-                AND "account_analytic_line".date >= '""" + date_from + """'
-                AND "account_analytic_line".date <= '""" + date_to + """'
-                GROUP BY "project_project".id
-            """
-
-            self.env.cr.execute(sql_query)
-            results = self.env.cr.dictfetchall()
-
-            total = 0
-            for line in results:
-                for line in results:
-                    total += line.get('total')
-                    lines.append({
-                        'id': "1_" + str(line.get('id')) ,
-                        'name': line.get('name'),
-                        'level': 2,
-                        'unfoldable': True,
-                        'unfolded': str(line_id) == '1_' + str(line.get('id')) and True or False,
-                        'columns': [{'name': line.get('name'), 'name': round(line.get('total'),3)}],
-                    })
-            query_task = """
-                SELECT
-                       "project_task".name, "project_task".id,sum("account_analytic_line".unit_amount) as total
-                FROM account_analytic_line LEFT JOIN project_task
-                ON "account_analytic_line".task_id = "project_task".id 
-                AND "account_analytic_line".project_id = """ + line_id[2:] + """
-                WHERE "account_analytic_line".date >= '""" + date_from + """'
-                AND "account_analytic_line".date <= '""" + date_to + """'
-                GROUP BY "project_task".id
-            """
-
-            self.env.cr.execute(query_task)
-            results_task = self.env.cr.dictfetchall()
-
-            for line_task in results_task:
-                if line_task.get('total') < 0.00000001:
-                    continue
-                line_task_check = '2_' + str(line_task.get('id'))
-                lines.append({
-                    'id': "2_" + str(line.get('id')),
-                    'name': line_task.get('name'),
-                    'parent_id': line_id,
-                    'level': 3,
-                    'unfoldable' : False,
-                    'columns': [{'name': line_task.get('name'), 'name': round(line_task.get('total'),3)}]
-            })
-            # lines.append({
-            #     'id' : 'total',
-            #     'name' : _('Total'),
-            #     'level' : 0,
-            #     'class' : 'total',
-            #     'columns' : [{'name' : round(total,3)}]
-            # })
-
-
-
-        return lines
+            return lines

@@ -6,6 +6,7 @@ class reportJiraTimesheetByProject_Employee(models.AbstractModel):
     _inherit = 'account.report'
     _description = 'Timesheet Report'
     filter_date = {'date_from' : '', 'date_to' : '', 'filter' : 'this_month'}
+    filter_employee = True
 
     def _get_report_name(self):
         return "Timesheet's Report Employee"
@@ -32,6 +33,8 @@ class reportJiraTimesheetByProject_Employee(models.AbstractModel):
                        "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
                 FROM account_analytic_line, project_project
                 WHERE  "account_analytic_line".project_id = "project_project".id
+                AND "account_analytic_line".date >= '""" + date_from + """'
+                AND "account_analytic_line".date <= '""" + date_to + """'
                 GROUP BY "project_project".id
             """
 
@@ -63,6 +66,8 @@ class reportJiraTimesheetByProject_Employee(models.AbstractModel):
                        "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
                 FROM account_analytic_line, project_project
                 WHERE  "account_analytic_line".project_id = "project_project".id
+                AND "account_analytic_line".date >= '""" + date_from + """'
+                AND "account_analytic_line".date <= '""" + date_to + """'
                 GROUP BY "project_project".id
             """
 

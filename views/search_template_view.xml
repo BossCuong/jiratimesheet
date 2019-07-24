@@ -1,0 +1,32 @@
+
+<odoo>
+    <data>
+        <template id="search_template_employee">
+            <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+                <span class="fa fa-book"/>
+                Employee:
+                <t t-set="selected_employee" t-value="', '.join(employ.get('code') for employ in options['employees'] if employ.get('selected'))"/>
+                <t t-if="selected_employee">
+                    <t t-esc="selected_employee"/>
+                </t>
+                <t t-else="">
+                    All
+                </t>
+            </a>
+
+            <div class="dropdown-menu o_filters_menu" role="menu">
+                <t t-foreach="options['employees']" t-as="a">
+                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="a.get('name')" t-att-data-id="a.get('id')" data-filter="type"><t t-esc="a.get('name')"/></a>
+                </t>
+            </div>
+        </template>
+
+        <template id="report_account_reports_filter_employee" inherit_id="account_reports.search_template" primary="True">
+            <xpath expr="//div[@class='btn-group o_dropdown o_account_reports_filter_date']" position="before">
+                <div class="btn-group o_dropdown o_account_reports_filter_employee" t-if="options.get('employee') != None">
+                    <t t-call="account_reports.search_template_employee"/>
+                </div>
+            </xpath>
+        </template>
+    </data>
+</odoo>

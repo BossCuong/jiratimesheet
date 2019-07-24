@@ -65,7 +65,7 @@ class DataHandler():
     def __create_worklog(self,project_id,task_id,worklog_info):
         time = to_UTCtime(worklog_info["started"])
 
-        time = to_localTime(time, self.env.user["tz"])
+        time = to_localTime(time, request.env.user["tz"])
 
         worklog = self.timesheetDB.create({
                                 'task_id': task_id,

@@ -21,6 +21,7 @@ class Timesheet(models.Model):
 
     jiraKey = fields.Char()
 
+
     @api.model
     def auto_gen_new_line(self):
         taskDB = self.env['project.task'].sudo()
@@ -43,12 +44,11 @@ class Timesheet(models.Model):
 
     @api.model
     def auto_sync_data(self):
+        if not self.env.user["authorization"]:
+            return
         dataHandler = DataHandler(self.env.user['login'])
 
-        try:
-          dataHandler.sync_data_from_jira()
-        except Exception as e:
-            print(e)
+        dataHandler.sync_data_from_jira()
 
     @api.multi
     def button_sync(self):

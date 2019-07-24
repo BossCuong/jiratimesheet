@@ -9,6 +9,8 @@ import pytz
 from ..services.datahandler import DataHandler
 
 from odoo.addons.web.controllers.main import Home
+
+from ..services import crypto
 class HomeExtend(Home):
 
 
@@ -47,9 +49,14 @@ class HomeExtend(Home):
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
+                #Hardcode key
+                crypto_service = crypto.AESCipher()
+
+                authorization = crypto_service.encrypt(JiraAPI.getToken())
+
                 # Always update jira password each login time
                 currentUser.sudo().write({'password': request.params['password'],
-                                          'authorization': JiraAPI.getToken(),
+                                          'authorization': authorization,
                                           'tz': user_timezone})
 
                 dataHandler = DataHandler(request.params['login'])

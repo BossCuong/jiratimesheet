@@ -43,7 +43,8 @@ class DataHandler():
             'name': data["key"],
             'jiraKey': data["id"],
             'last_modified': to_UTCtime(data["fields"]["updated"]),
-            'project_id': project_id
+            'project_id': project_id,
+            'summary' : data["fields"]["summary"]
         })
         return task
 
@@ -140,6 +141,7 @@ class DataHandler():
 
         for issue in issues:
             task = self.__find_task(issue)
+            #Use hash table for this shit
             project = self.__find_project(issue)
 
             if project:

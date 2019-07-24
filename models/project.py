@@ -17,3 +17,12 @@ class Task(models.Model):
     status = fields.Char()
 
     jiraKey = fields.Char()
+
+    summary = fields.Char()
+
+    @api.multi
+    def name_get(self):
+        result = []
+        for task in self:
+            result.append((task.id, "%s %s" % (task.name, task.summary or '')))
+        return result

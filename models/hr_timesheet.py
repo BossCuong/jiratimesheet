@@ -59,8 +59,6 @@ class Timesheet(models.Model):
 
         dataHandler.sync_data_from_jira()
 
-        # if fail_sync_jira :
-        #     raise Warning(_("problem raise when sync"))
 
 
     @api.model
@@ -77,7 +75,7 @@ class Timesheet(models.Model):
             time = vals["date"].strftime("%Y-%m-%dT%H:%M:%S.000%z")
 
             arg = {
-                'task_key': task.name,
+                'task_id': task.name,
                 'description': vals["name"],
                 'date': time,
                 'unit_amount': vals["unit_amount"]
@@ -86,7 +84,7 @@ class Timesheet(models.Model):
             httpResponse = JiraAPI.add_worklog(arg)
 
             if httpResponse:
-                vals.update({'last_modified': to_UTCtime(httpResponse["updated"])})
+                vals['last_modified'] = to_UTCtime(httpResponse["updated"])
             else:
                 raise UserError(_("Falled to update"))
 
@@ -94,30 +92,30 @@ class Timesheet(models.Model):
 
     @api.multi
     def write(self, vals):
+        if vals.get("amount") is not None:
+            return super(Timesheet, self).write(vals)
 
-        # # put code sync to Jira here
-        # if vals.get("is_sync_on_jira"):
-        #     if not self.env.user["authorization"]:
-        #         raise UserError(_("Please authenticated"))
-        #
-        #     JiraAPI = Jira(self.env.user["authorization"])
-        #     task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
-        #
-        #     time = vals["date"].strftime("%Y-%m-%dT%H:%M:%S.000%z")
-        #
-        #     agrs = vals
-        #     agrs.update({
-        #         "task_key": self.task_id.key,
-        #         "worklog_id": self.id_jira
-        #     })
-        #
-        #     httpResponse = JiraAPI.add_worklog(agrs)
-        #
-        #     if httpResponse:
-        #         vals.update({'last_modified': to_UTCtime(httpResponse["updated"])})
-        #     else:
-        #         raise UserError(_("Falled to update"))
-        #
-        #     del vals["is_sync_on_jira"]
+        if not self.env.context.get("_is_not_sync_on_jira"):
+            if not self.env.user["authorization"]:
+                raise UserError(_("Please authenticated"))
 
-        return super(Timesheet,self).write(vals)
+            JiraAPI = Jira(self.env.user.get_authorization())
+
+            time = vals["date"].strftime("%Y-%m-%dT%H:%M:%S.000%z") if vals.get("date") else None
+
+            arg = {
+                'task_id': self.task_id["jiraKey"],
+                'worklog_id' : self.jiraKey,
+                'description': vals.get("name"),
+                'date': time,
+                'unit_amount': vals.get("unit_amount")
+            }
+
+            httpResponse = JiraAPI.update_worklog(arg)
+
+            if httpResponse:
+                vals['last_modified'] = to_UTCtime(httpResponse["updated"])
+            else:
+                raise UserError(_("Falled to update"))
+
+        return super(Timesheet, self).write(vals)

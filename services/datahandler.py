@@ -114,7 +114,7 @@ class DataHandler():
                 isLogModified = (res.last_modified != to_UTCtime(workLog["updated"]))
 
                 if isLogModified:
-                    res.write({
+                    res.with_context(_is_not_sync_on_jira=True).write({
                         'name' : workLog["comment"],
                         'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                         'last_modified' : to_UTCtime(workLog["updated"])

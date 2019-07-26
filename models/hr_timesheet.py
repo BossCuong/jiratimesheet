@@ -4,6 +4,7 @@ from ..services.datahandler import DataHandler
 from ..services.api import Jira
 from ..services.utils import to_UTCtime
 import datetime
+from odoo.addons.queue_job.job import job
 class Timesheet(models.Model):
     _inherit = 'account.analytic.line'
 
@@ -20,7 +21,6 @@ class Timesheet(models.Model):
     assignee_id = fields.Many2one('hr.employee', "Employee")
 
     jiraKey = fields.Char()
-
 
     @api.model
     def auto_gen_new_line(self):
@@ -46,20 +46,22 @@ class Timesheet(models.Model):
     def auto_sync_data(self):
         if not self.env.user["authorization"]:
             return
-        dataHandler = DataHandler(self.env.user['login'])
+        self.sync_data(self.env.user["login"])
+
+    @api.multi
+    @job
+    def sync_data(self,login):
+        dataHandler = DataHandler(login)
 
         dataHandler.sync_data_from_jira()
+
 
     @api.multi
     def button_sync(self):
         if not self.env.user["authorization"]:
             raise UserError(_("Please authenticated"))
 
-        dataHandler = DataHandler(self.env.user['login'])
-
-        dataHandler.sync_data_from_jira()
-
-
+        self.sync_data(self.env.user["login"])
 
     @api.model
     def create(self, vals):
@@ -92,10 +94,7 @@ class Timesheet(models.Model):
 
     @api.multi
     def write(self, vals):
-        if vals.get("amount") is not None:
-            return super(Timesheet, self).write(vals)
-
-        if not self.env.context.get("_is_not_sync_on_jira"):
+        if not self.env.context.get("_is_not_sync_on_jira") and vals.get("amount") is None:
             if not self.env.user["authorization"]:
                 raise UserError(_("Please authenticated"))
 

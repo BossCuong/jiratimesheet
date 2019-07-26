@@ -12,8 +12,6 @@ from odoo.addons.web.controllers.main import Home
 
 from ..services import crypto
 class HomeExtend(Home):
-
-
     @http.route('/web/login',type='http', auth="none", sitemap=False)
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
@@ -59,12 +57,9 @@ class HomeExtend(Home):
                                           'tz': user_timezone,
                                           'name' : user_display_name})
 
-                dataHandler = DataHandler(request.params['login'])
-
-                dataHandler.sync_data_from_jira()
-
                 request.env.cr.commit()
 
+                request.env['account.analytic.line'].sudo().with_delay().sync_data(request.params['login'])
 
         response = super().web_login(redirect, **kw)
 

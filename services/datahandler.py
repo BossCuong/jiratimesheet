@@ -129,7 +129,7 @@ class DataHandler():
             workLog_key = workLog['jiraKey']
 
             if not worklog_id_dic.get(workLog_key):
-                workLog.unlink()
+                workLog.with_context(_is_not_sync_on_jira=True).unlink()
 
     def __find_task(self,data):
         return self.taskDB.search([('jiraKey', '=', data["id"])])

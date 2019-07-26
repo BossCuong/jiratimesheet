@@ -147,6 +147,17 @@ class Jira():
         else:
             return None
 
+    def remove_worklog(self,arg):
+        httpResponse = requests.delete(
+            url=self.url + "/rest/api/2/issue/%s/worklog/%s" % (arg["task_id"], arg["worklog_id"]),
+            headers=self.headers
+        )
+
+        if httpResponse.status_code == 204:
+            return True
+        else:
+            return False
+
     def get_user(self, username):
         reponse = requests.get(
             url=self.url + "/rest/api/2/user",

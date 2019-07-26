@@ -18,8 +18,6 @@ class Timesheet(models.Model):
 
     last_modified = fields.Datetime()
 
-    assignee_id = fields.Many2one('hr.employee', "Employee")
-
     jiraKey = fields.Char()
 
     @api.model
@@ -118,3 +116,23 @@ class Timesheet(models.Model):
                 raise UserError(_("Falled to update"))
 
         return super(Timesheet, self).write(vals)
+
+    @api.multi
+    def unlink(self):
+        if not self.env.context.get("_is_not_sync_on_jira"):
+            if not self.env.user["authorization"]:
+                raise UserError(_("Please authenticated"))
+
+            JiraAPI = Jira(self.env.user.get_authorization())
+
+            arg = {
+                'task_id': self.task_id["jiraKey"],
+                'worklog_id': self.jiraKey,
+            }
+
+            httpResponse = JiraAPI.remove_worklog(arg)
+
+            if not httpResponse:
+                raise UserError(_("Falled to update"))
+
+        return super(Timesheet, self).unlink()

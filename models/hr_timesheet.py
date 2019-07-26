@@ -53,7 +53,6 @@ class Timesheet(models.Model):
 
         dataHandler.sync_data_from_jira()
 
-
     @api.multi
     def button_sync(self):
         if not self.env.user["authorization"]:
@@ -133,6 +132,6 @@ class Timesheet(models.Model):
             httpResponse = JiraAPI.remove_worklog(arg)
 
             if not httpResponse:
-                raise UserError(_("Falled to update"))
+                raise UserError(_("Falled to remove"))
 
         return super(Timesheet, self).unlink()

@@ -8,7 +8,6 @@ class Project(models.Model):
 
     user_ids = fields.Many2many('res.users', string = "user ids ")
 
-
 class Task(models.Model):
     _inherit = "project.task"
 

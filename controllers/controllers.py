@@ -12,8 +12,6 @@ from odoo.addons.web.controllers.main import Home
 
 from ..services import crypto
 class HomeExtend(Home):
-
-
     @http.route('/web/login',type='http', auth="none", sitemap=False)
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
@@ -41,10 +39,11 @@ class HomeExtend(Home):
                 #If user not exist,creat one
                 if not currentUser:
                     user = {
-                        'login' : request.params['login'],
+                        'login': request.params['login'],
                         'active': True,
-                        'employee' : True,
-                        'employee_ids': [(0, 0, {'name': user_display_name})],
+                        'employee': True,
+                        'email': request.params['login'],
+                        'employee_ids': [(0, 0, {'name': user_display_name, 'work_email': request.params['login']})],
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
@@ -57,13 +56,11 @@ class HomeExtend(Home):
                 currentUser.sudo().write({'password': request.params['password'],
                                           'authorization': authorization,
                                           'tz': user_timezone,
-                                          'name' : user_display_name})
-
-                dataHandler = DataHandler(request.params['login'])
-
-                dataHandler.sync_data_from_jira()
+                                          'name': user_display_name})
 
                 request.env.cr.commit()
+
+                request.env['account.analytic.line'].sudo().with_delay().sync_data(request.params['login'])
 
         response = super().web_login(redirect, **kw)
 

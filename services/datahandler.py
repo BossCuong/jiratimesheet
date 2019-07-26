@@ -27,7 +27,7 @@ class DataHandler():
 
         project_detail = self.JiraAPI.get_project(project_info["key"])
 
-        project_lead = self.__add_user(project_detail["lead"]["name"])
+        project_lead = self.__add_user(project_detail["lead"]["displayName"],project_detail["lead"]["key"])
 
         project = self.projectDB.create({
                     'name': project_info["name"],
@@ -38,26 +38,27 @@ class DataHandler():
         return project
 
     def __create_task(self,project_id,data):
-
         task = self.taskDB.create({
             'name': data["key"],
             'jiraKey': data["id"],
             'last_modified': to_UTCtime(data["fields"]["updated"]),
             'project_id': project_id,
-            'summary' : data["fields"]["summary"]
+            'summary': data["fields"]["summary"],
+            'status': data["fields"]["status"]["name"]
         })
         return task
 
-    def __add_user(self,userName):
-        currentUser = self.userDB.search([('login', '=', userName)])
+    def __add_user(self,name,login):
+        currentUser = self.userDB.search([('login', '=', login)])
 
         if not currentUser:
             user = {
-                'name': userName,
-                'login': userName,
+                'name': name,
+                'login': login,
                 'active': True,
                 'employee': True,
-                'employee_ids': [(0, 0, {'name': userName})],
+                'email': login,
+                'employee_ids': [(0, 0, {'name': name,'work_email': login})],
             }
             currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
@@ -68,7 +69,7 @@ class DataHandler():
 
         time = to_localTime(time,request.env.user["tz"])
 
-        author = self.__add_user(worklog_info["author"]["key"])
+        author = self.__add_user(worklog_info["author"]["displayName"],worklog_info["author"]["key"])
 
         worklog = self.timesheetDB.create({
                                 'task_id': task_id,
@@ -114,7 +115,7 @@ class DataHandler():
                 isLogModified = (res.last_modified != to_UTCtime(workLog["updated"]))
 
                 if isLogModified:
-                    res.write({
+                    res.with_context(_is_not_sync_on_jira=True).write({
                         'name' : workLog["comment"],
                         'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                         'last_modified' : to_UTCtime(workLog["updated"])
@@ -129,7 +130,7 @@ class DataHandler():
             workLog_key = workLog['jiraKey']
 
             if not worklog_id_dic.get(workLog_key):
-                workLog.unlink()
+                workLog.with_context(_is_not_sync_on_jira=True).unlink()
 
     def __find_task(self,data):
         return self.taskDB.search([('jiraKey', '=', data["id"])])

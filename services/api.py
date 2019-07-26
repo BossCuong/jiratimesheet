@@ -110,7 +110,7 @@ class Jira():
 
     def add_worklog(self, arg):
         httpResponse = requests.post(
-            url=self.url + "/rest/api/2/issue/%s/worklog" %(arg["task_key"]),
+            url=self.url + "/rest/api/2/issue/%s/worklog" %(arg["task_id"]),
             headers=self.headers,
             json={
                 "comment": arg["description"],
@@ -123,6 +123,40 @@ class Jira():
             return httpResponse.json()
         else:
             return None
+
+    def update_worklog(self, arg):
+        data ={}
+
+        if arg.get("description"):
+            data["comment"] = arg["description"]
+
+        if arg.get("date"):
+            data["started"] = arg["date"]
+
+        if arg.get("unit_amount"):
+            data["timeSpentSeconds"] = int(arg["unit_amount"]*60*60)
+
+        httpResponse = requests.put(
+            url=self.url + "/rest/api/2/issue/%s/worklog/%s" %(arg["task_id"],arg["worklog_id"]),
+            headers=self.headers,
+            json=data
+        )
+
+        if httpResponse.status_code == 200:
+            return httpResponse.json()
+        else:
+            return None
+
+    def remove_worklog(self,arg):
+        httpResponse = requests.delete(
+            url=self.url + "/rest/api/2/issue/%s/worklog/%s" % (arg["task_id"], arg["worklog_id"]),
+            headers=self.headers
+        )
+
+        if httpResponse.status_code == 204:
+            return True
+        else:
+            return False
 
     def get_user(self, username):
         reponse = requests.get(

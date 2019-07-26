@@ -4,6 +4,7 @@ from ..services.datahandler import DataHandler
 from ..services.api import Jira
 from ..services.utils import to_UTCtime
 import datetime
+from odoo.addons.queue_job.job import job
 class Timesheet(models.Model):
     _inherit = 'account.analytic.line'
 
@@ -17,10 +18,7 @@ class Timesheet(models.Model):
 
     last_modified = fields.Datetime()
 
-    assignee_id = fields.Many2one('hr.employee', "Employee")
-
     jiraKey = fields.Char()
-
 
     @api.model
     def auto_gen_new_line(self):
@@ -46,20 +44,22 @@ class Timesheet(models.Model):
     def auto_sync_data(self):
         if not self.env.user["authorization"]:
             return
-        dataHandler = DataHandler(self.env.user['login'])
+        self.sync_data(self.env.user["login"])
+
+    @api.multi
+    @job
+    def sync_data(self,login):
+        dataHandler = DataHandler(login)
+
         dataHandler.sync_data_from_jira()
+
 
     @api.multi
     def button_sync(self):
         if not self.env.user["authorization"]:
             raise UserError(_("Please authenticated"))
 
-        dataHandler = DataHandler(self.env.user['login'])
-
-        dataHandler.sync_data_from_jira()
-
-        # if fail_sync_jira :
-        #     raise Warning(_("problem raise when sync"))
+        self.sync_data(self.env.user["login"])
 
     @api.model
     def create(self, vals):
@@ -75,7 +75,7 @@ class Timesheet(models.Model):
             time = vals["date"].strftime("%Y-%m-%dT%H:%M:%S.000%z")
 
             arg = {
-                'task_key': task.name,
+                'task_id': task.name,
                 'description': vals["name"],
                 'date': time,
                 'unit_amount': vals["unit_amount"]
@@ -84,7 +84,7 @@ class Timesheet(models.Model):
             httpResponse = JiraAPI.add_worklog(arg)
 
             if httpResponse:
-                vals.update({'last_modified': to_UTCtime(httpResponse["updated"])})
+                vals['last_modified'] = to_UTCtime(httpResponse["updated"])
             else:
                 raise UserError(_("Falled to update"))
 
@@ -92,30 +92,47 @@ class Timesheet(models.Model):
 
     @api.multi
     def write(self, vals):
+        if not self.env.context.get("_is_not_sync_on_jira") and vals.get("amount") is None:
+            if not self.env.user["authorization"]:
+                raise UserError(_("Please authenticated"))
 
-        # # put code sync to Jira here
-        # if vals.get("is_sync_on_jira"):
-        #     if not self.env.user["authorization"]:
-        #         raise UserError(_("Please authenticated"))
-        #
-        #     JiraAPI = Jira(self.env.user["authorization"])
-        #     task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
-        #
-        #     time = vals["date"].strftime("%Y-%m-%dT%H:%M:%S.000%z")
-        #
-        #     agrs = vals
-        #     agrs.update({
-        #         "task_key": self.task_id.key,
-        #         "worklog_id": self.id_jira
-        #     })
-        #
-        #     httpResponse = JiraAPI.add_worklog(agrs)
-        #
-        #     if httpResponse:
-        #         vals.update({'last_modified': to_UTCtime(httpResponse["updated"])})
-        #     else:
-        #         raise UserError(_("Falled to update"))
-        #
-        #     del vals["is_sync_on_jira"]
+            JiraAPI = Jira(self.env.user.get_authorization())
 
-        return super(Timesheet,self).write(vals)
+            time = vals["date"].strftime("%Y-%m-%dT%H:%M:%S.000%z") if vals.get("date") else None
+
+            arg = {
+                'task_id': self.task_id["jiraKey"],
+                'worklog_id' : self.jiraKey,
+                'description': vals.get("name"),
+                'date': time,
+                'unit_amount': vals.get("unit_amount")
+            }
+
+            httpResponse = JiraAPI.update_worklog(arg)
+
+            if httpResponse:
+                vals['last_modified'] = to_UTCtime(httpResponse["updated"])
+            else:
+                raise UserError(_("Falled to update"))
+
+        return super(Timesheet, self).write(vals)
+
+    @api.multi
+    def unlink(self):
+        if not self.env.context.get("_is_not_sync_on_jira"):
+            if not self.env.user["authorization"]:
+                raise UserError(_("Please authenticated"))
+
+            JiraAPI = Jira(self.env.user.get_authorization())
+
+            arg = {
+                'task_id': self.task_id["jiraKey"],
+                'worklog_id': self.jiraKey,
+            }
+
+            httpResponse = JiraAPI.remove_worklog(arg)
+
+            if not httpResponse:
+                raise UserError(_("Falled to update"))
+
+        return super(Timesheet, self).unlink()

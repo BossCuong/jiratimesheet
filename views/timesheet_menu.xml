@@ -8,13 +8,55 @@
         id="action_timesheet_views">
         <field name="name">jira timesheet</field>
         <field name="res_model">account.analytic.line</field>
-        <field name="view_mode">grid,tree</field>
+        <field name="view_mode">grid,graph,list</field>
         <field name="view_id" ref="timesheet_line_grid"/>
+
         <field name="context">{
                 'search_default_filter_todo_worklog': 1,
                 'search_default_filter_inprogress_worklog': 1,
             }</field>
     </record>
+
+    <record id = "action_report_by_project_task" model = "ir.actions.client">
+        <field name = "name">Report Timesheet Jira</field>
+        <field name = "tag" >account_report</field>
+        <field name = "context" eval="{'model' : 'account.report.project.task'}"/>
+    </record>
+
+    <record id = "action_report_by_project_employee" model = "ir.actions.client">
+        <field name = "name">Report Timesheet Jira Project </field>
+        <field name = "tag" >account_report</field>
+        <field name = "context" eval="{'model' : 'account.report.project.employee'}"/>
+    </record>
+
+    <record id = "action_report_by_employee_project" model = "ir.actions.client">
+        <field name = "name">Report Timesheet Jira Employee</field>
+        <field name = "tag" >account_report</field>
+        <field name = "context" eval="{'model' : 'account.report.employee.project'}"/>
+    </record>
+
+    <menuitem id = "menu_timesheet_report"
+      name = "Reports"
+      parent = "timesheet_menu"
+    />
+
+    <menuitem id="menu_report_by_project_task"
+              name="Group By Task"
+              action="action_report_by_project_task"
+              parent="menu_timesheet_report"
+    />
+
+    <menuitem id="menu_report_by_project_employee"
+              name="Group By Project - Employee"
+              action="action_report_by_project_employee"
+              parent="menu_timesheet_report"
+    />
+
+    <menuitem id="menu_report_by_employee_project"
+              name="Group By Employee - Project"
+              action="action_report_by_employee_project"
+              parent="menu_timesheet_report"
+    />
 
     <menuitem id = "menu_timesheet_views"
               name = "Views"

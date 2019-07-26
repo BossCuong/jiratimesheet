@@ -1,4 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_jiratimesheet_jiratimesheet,jiratimesheet.jiratimesheet,model_jiratimesheet_jiratimesheet,,1,1,1,1
+access_jiratimesheet_jiratimesheet,jiratimesheet.jiratimesheet,model_jiratimesheet_jiratimesheet,1,1,1,1
 access_timesheet_views,access_timesheet_views,model_account_analytic_line,base.group_user,1,1,1,1
+access_timesheet_views,access_timesheet_views,model_account_report_manager,base.group_user,1,1,1,1
 

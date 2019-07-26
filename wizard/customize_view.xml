@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
         <record id="timesheet_view_form_test" model="ir.ui.view">
             <field name="name">jira worklog</field>
             <field name="model">customize.transient</field>

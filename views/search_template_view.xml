@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <template id="search_template_employee">
+            <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+                <span class="fa fa-book"/>
+                Employee:
+                <t t-set="selected_employees" t-value="', '.join(employ.get('code') for employ in options['employees'] if employ.get('selected'))"/>
+
+                <t t-if="selected_employees">
+                    <t t-esc="selected_employees"/>
+                </t>
+                <t t-else="">
+                    All
+                </t>
+            </a>
+
+            <div class="dropdown-menu o_filters_menu" role="menu">
+                <t t-foreach="options['employees']" t-as="a">
+                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="a.get('name')" t-att-data-id="a.get('id')" data-filter="type"><t t-esc="a.get('name')"/></a>
+                </t>
+            </div>
+
+        </template>
+
+        <template id="search_template_project">
+            <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+                <span class="fa fa-book"/>
+                Project:
+                <t t-set="selected_project" t-value="', '.join(project.get('code') for project in options['projects'] if project.get('selected'))"/>
+
+                <t t-if="selected_project">
+                    <t t-esc="selected_project"/>
+                </t>
+                <t t-else="">
+                    All
+                </t>
+            </a>
+
+            <div class="dropdown-menu o_filters_menu" role="menu">
+                <t t-foreach="options['projects']" t-as="a">
+                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="a.get('name')" t-att-data-id="a.get('id')" data-filter="type"><t t-esc="a.get('name')"/></a>
+                </t>
+            </div>
+
+        </template>
+
+        <template id="search_template_task">
+            <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+                <span class="fa fa-book"/>
+                Task:
+                <t t-set="selected_task" t-value="', '.join(task.get('code') for task in options['tasks'] if task.get('selected'))"/>
+
+                <t t-if="selected_task">
+                    <t t-esc="selected_task"/>
+                </t>
+                <t t-else="">
+                    All
+                </t>
+            </a>
+
+            <div class="dropdown-menu o_filters_menu" role="menu">
+                <t t-foreach="options['tasks']" t-as="a">
+                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="a.get('name')" t-att-data-id="a.get('id')" data-filter="type"><t t-esc="a.get('name')"/></a>
+                </t>
+            </div>
+
+        </template>
+
+        <template id="report_summary" inherit_id="account_reports.main_template" primary="True">
+            <xpath expr="//div[hasclass('o_account_reports_summary')]" position="replace"/>
+        </template>
+
+        <template id="reports_employee_project_filter" inherit_id="account_reports.search_template" primary="True">
+            <xpath expr="//div[hasclass('o_account_reports_filter_date')]" position="after">
+                <div class="btn-group o_dropdown o_account_reports_filter_employee" t-if="options.get('employees') != None">
+                    <t t-call="jiratimesheet.search_template_employee"/>
+                </div>
+
+                <div class="btn-group o_dropdown o_account_reports_filter_project" t-if="options.get('projects') != None">
+                    <t t-call="jiratimesheet.search_template_project"/>
+                </div>
+            </xpath>
+        </template>
+
+        <template id="reports_project_task_filter" inherit_id="account_reports.search_template" primary="True">
+            <xpath expr="//div[hasclass('o_account_reports_filter_date')]" position="after">
+                <div class="btn-group o_dropdown o_account_reports_filter_project" t-if="options.get('projects') != None">
+                    <t t-call="jiratimesheet.search_template_project"/>
+                </div>
+                <div class="btn-group o_dropdown o_account_reports_filter_task" t-if="options.get('tasks') != None">
+                    <t t-call="jiratimesheet.search_template_task"/>
+                </div>
+            </xpath>
+
+        </template>
+
+
+        <template id="reports_project_employee_filter" inherit_id="account_reports.search_template" primary="True">
+            <xpath expr="//div[hasclass('o_account_reports_filter_date')]" position="after">
+                <div class="btn-group o_dropdown o_account_reports_filter_project" t-if="options.get('projects') != None">
+                    <t t-call="jiratimesheet.search_template_project"/>
+                </div>
+                <div class="btn-group o_dropdown o_account_reports_filter_employee" t-if="options.get('employees') != None">
+                    <t t-call="jiratimesheet.search_template_employee"/>
+                </div>
+            </xpath>
+
+        </template>
+
+
+
+        <template id="project_caret_option_line_template" inherit_id="account_reports.line_template" primary="True">
+            <xpath expr="//div[hasclass('o_account_reports_domain_dropdown')]" position = "inside">
+                <li t-if="line['caret_options'] == 'employee.project'">
+                    <a role="menuitem" tabindex="-1" t-att-data-id="line['id']" action="open_project_detail" class="dropdown-item">Project Detail</a>
+                </li>
+            </xpath>
+        </template>
+
+        <template id="employee_caret_option_line_template" inherit_id="account_reports.line_template" primary="True">
+            <xpath expr="//div[hasclass('o_account_reports_domain_dropdown')]" position = "inside">
+                <li t-if="line['caret_options'] == 'project.employee'">
+                    <a role="menuitem" tabindex="-1" t-att-data-id="line['id']" action="open_employee_detail" class="dropdown-item">Employee Detail</a>
+                </li>
+            </xpath>
+        </template>
+
+        <template id="task_caret_option_line_template" inherit_id="account_reports.line_template" primary="True">
+            <xpath expr="//div[hasclass('o_account_reports_domain_dropdown')]" position = "inside">
+                <li t-if="line['caret_options'] == 'project.task'">
+                    <a role="menuitem" tabindex="-1" t-att-data-id="line['id']" action="open_task_detail" class="dropdown-item">Task Detail</a>
+                </li>
+            </xpath>
+        </template>
+    </data>
+</odoo>

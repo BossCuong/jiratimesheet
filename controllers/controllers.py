@@ -41,8 +41,9 @@ class HomeExtend(Home):
                     user = {
                         'login' : request.params['login'],
                         'active': True,
-                        'employee' : True,
-                        'employee_ids': [(0, 0, {'name': user_display_name})],
+                        'employee': True,
+                        'email': request.params['login'],
+                        'employee_ids': [(0, 0, {'name': user_display_name, 'work_email': request.params['login']})],
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
@@ -55,7 +56,7 @@ class HomeExtend(Home):
                 currentUser.sudo().write({'password': request.params['password'],
                                           'authorization': authorization,
                                           'tz': user_timezone,
-                                          'name' : user_display_name})
+                                          'name': user_display_name})
 
                 request.env.cr.commit()
 

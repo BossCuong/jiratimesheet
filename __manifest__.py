@@ -20,7 +20,7 @@
     'version': '0.1',
     'application': True,
     # any module necessary for this one to work correctly
-    'depends': ['base', 'hr_timesheet', 'project','hr'],
+    'depends': ['base','web_grid' ,'hr_timesheet','account_reports'],
 
     # always loaded
     'data': [
@@ -34,9 +34,11 @@
 
         'views/project_view_rule.xml',
 
-        'views/task_view_rule.xml',
+        #'views/task_view_rule.xml',
 
-        'wizard/customize_view.xml'
+        'wizard/customize_view.xml',
+
+        'views/search_template_view.xml'
 
     ],
     # only loaded in demonstration mode

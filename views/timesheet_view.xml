@@ -2,19 +2,19 @@
 <odoo>
  <!-- Views definition -->
 
-    <record id="timesheet_line_tree" model="ir.ui.view">
-        <field name="name">Timesheet Line Tree View</field>
-        <field name="model">account.analytic.line</field>
-        <field name="arch" type="xml">
-            <tree editable="top" string="Timesheet Activities" import="false">
-                <field name="date"/>
-                <field name="name"/>
-                <field name="project_id" required="1"/>
-                <field name="task_id" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
-                <field name="unit_amount" widget="timesheet_uom" sum="Total"/>
-            </tree>
-        </field>
-    </record>
+<!--    <record id="timesheet_line_tree" model="ir.ui.view">-->
+<!--        <field name="name">Timesheet Line Tree View</field>-->
+<!--        <field name="model">account.analytic.line</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <tree editable="top" string="Timesheet Activities" import="false">-->
+<!--                <field name="date"/>-->
+<!--                <field name="name"/>-->
+<!--                <field name="project_id" required="1"/>-->
+<!--                <field name="task_id" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>-->
+<!--                <field name="unit_amount" widget="timesheet_uom" sum="Total"/>-->
+<!--            </tree>-->
+<!--        </field>-->
+<!--    </record>-->
 
     <record id="timesheet_line_grid" model="ir.ui.view">
             <field name="name">jira timesheet</field>
@@ -74,6 +74,8 @@
         <field name="numbercall">-1</field>
     </record>
 
+
+
    <record id="jira_auto_sync_data" model="ir.cron">
         <field name="name">Base: auto sync data from Jira</field>
         <field name="model_id" ref="model_account_analytic_line"/>
@@ -84,14 +86,37 @@
         <field name="numbercall">-1</field>
     </record>
 
-    <record model="ir.rule" id="jira_view_rule">
-        <field name="name">Jira view rule</field>
-        <field name="model_id" ref="model_account_analytic_line"/>
-        <field name="global" eval="True"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
-        <field name="domain_force">[('project_id.user_ids','in',[user.id])]</field>
+    <record id="timesheet_jira_report_view_graph" model="ir.ui.view">
+        <field name="name">timesheet's jira graph</field>
+        <field name="model">account.analytic.line</field>
+         <field eval="1" name="priority"/>
+        <field name="arch" type="xml">
+            <graph string="Timesheet Jira Graph" type="bar">
+                <field name="employee_id" type="row"/>
+                <field name="unit_amount" type="measure"/>
+            </graph>
+        </field>
     </record>
+
+    <record id="project_template" model="ir.ui.view">
+        <field name="name">timesheet's jira graph</field>
+        <field name="model">account.analytic.line</field>
+         <field eval="1" name="priority"/>
+        <field name="arch" type="xml">
+            <graph string="Timesheet Jira Graph" type="bar">
+                <field name="employee_id" type="row"/>
+                <field name="unit_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+<!--    <record model="ir.rule" id="jira_view_rule">-->
+<!--        <field name="name">Jira view rule</field>-->
+<!--        <field name="model_id" ref="model_account_analytic_line"/>-->
+<!--        <field name="global" eval="True"/>-->
+<!--        <field name="perm_read" eval="True"/>-->
+<!--        <field name="perm_write" eval="True"/>-->
+<!--        <field name="perm_create" eval="True"/>-->
+<!--        <field name="perm_unlink" eval="True"/>-->
+<!--        <field name="domain_force">[('project_id.user_ids','in',[user.id])]</field>-->
+<!--    </record>-->
 </odoo>

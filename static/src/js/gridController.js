@@ -5,9 +5,12 @@ odoo.define('jira_timesheet.grid_controller', function (require) {
 
     GridController.include({
         events : _.extend({}, GridController.prototype.events, {
-            'click .o_grid_input' : '_actionTest'
+            'click .o_grid_input' : '_actionTest',
         }),
-
+        _actionUpdate : function(e){
+            alert("hello")
+            console.log("aaaaa")
+        },
         _actionTest : function(e){
 
                 var self = this;

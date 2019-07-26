@@ -15,20 +15,21 @@
     <record id = "action_report_by_project_task" model = "ir.actions.client">
         <field name = "name">Report Timesheet Jira</field>
         <field name = "tag" >account_report</field>
-        <field name = "context" eval="{'model' : 'account.report.byproject.task'}"/>
+        <field name = "context" eval="{'model' : 'account.report.project.task'}"/>
     </record>
 
     <record id = "action_report_by_project_employee" model = "ir.actions.client">
         <field name = "name">Report Timesheet Jira Project </field>
         <field name = "tag" >account_report</field>
-        <field name = "context" eval="{'model' : 'account.report.byproject.employee'}"/>
+        <field name = "context" eval="{'model' : 'account.report.project.employee'}"/>
     </record>
 
     <record id = "action_report_by_employee_project" model = "ir.actions.client">
         <field name = "name">Report Timesheet Jira Employee</field>
         <field name = "tag" >account_report</field>
-        <field name = "context" eval="{'model' : 'account.report.byemployee.project'}"/>
+        <field name = "context" eval="{'model' : 'account.report.employee.project'}"/>
     </record>
+
     <menuitem id = "menu_timesheet_report"
       name = "Reports"
       parent = "timesheet_menu"

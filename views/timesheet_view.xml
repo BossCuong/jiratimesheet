@@ -87,6 +87,17 @@
         </field>
     </record>
 
+    <record id="project_template" model="ir.ui.view">
+        <field name="name">timesheet's jira graph</field>
+        <field name="model">account.analytic.line</field>
+         <field eval="1" name="priority"/>
+        <field name="arch" type="xml">
+            <graph string="Timesheet Jira Graph" type="bar">
+                <field name="employee_id" type="row"/>
+                <field name="unit_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
 <!--    <record model="ir.rule" id="jira_view_rule">-->
 <!--        <field name="name">Jira view rule</field>-->
 <!--        <field name="model_id" ref="model_account_analytic_line"/>-->

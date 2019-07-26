@@ -40,15 +40,26 @@
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
           <search>
-          <field name="task_id" />
-          <field name="project_id" />
-          <field name="employee_id"/>
-          <filter name="filter_my_name"
-                  string="My Worklog"
-                  domain="[('employee_id.user_id','=', uid)]"/>
-          <filter name="filter_worklog"
-                  string="filter"
-                  domain="[('unit_amount','>', 0)]"/>
+              <field name="task_id" />
+              <field name="project_id" />
+              <field name="employee_id"/>
+              <filter name="filter_my_name"
+                      string="My Worklog"
+                      domain="[('employee_id.user_id','=', uid)]"/>
+              <separator/>
+              <filter name="filter_todo_worklog"
+                  string="To Do"
+                  domain="[('task_id.status','=', 'To Do')]"/>
+              <filter name="filter_inprogress_worklog"
+                  string="In Progress"
+                  domain="[('task_id.status','=', 'In Progress')]"/>
+              <filter name="filter_done_worklog"
+                  string="Done"
+                  domain="[('task_id.status','=', 'Done')]"/>
+              <separator/>
+              <filter name="filter_worklog"
+                      string="Unit amount > 0"
+                      domain="[('unit_amount','>', 0)]"/>
           </search>
         </field>
     </record>

@@ -39,7 +39,7 @@ class HomeExtend(Home):
                 #If user not exist,creat one
                 if not currentUser:
                     user = {
-                        'login' : request.params['login'],
+                        'login': request.params['login'],
                         'active': True,
                         'employee': True,
                         'email': request.params['login'],

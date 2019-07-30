@@ -47,6 +47,10 @@
                       string="My Worklog"
                       domain="[('employee_id.user_id','=', uid)]"/>
               <separator/>
+              <filter name="filter_assign_task"
+                      string="Task assign"
+                      domain="[('task_id.user_id','=', uid)]"/>
+              <separator/>
               <filter name="filter_todo_worklog"
                   string="To Do"
                   domain="[('task_id.status','=', 'To Do')]"/>

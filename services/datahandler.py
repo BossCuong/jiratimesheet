@@ -3,7 +3,6 @@ from odoo.http import request
 from .api import Jira
 from .utils import to_UTCtime,to_localTime
 
-
 class DataHandler():
     def __init__(self, login):
         userDB = request.env['res.users'].sudo().with_context(active_test=False)
@@ -38,13 +37,19 @@ class DataHandler():
         return project
 
     def __create_task(self,project_id,data):
+
+        data = data["fields"]["assignee"]
+
+        assignee = self.__add_user(data["displayName"], data["key"]) if data else None
+
         task = self.taskDB.create({
             'name': data["key"],
             'jiraKey': data["id"],
             'last_modified': to_UTCtime(data["fields"]["updated"]),
             'project_id': project_id,
             'summary': data["fields"]["summary"],
-            'status': data["fields"]["status"]["name"]
+            'status': data["fields"]["status"]["name"],
+            'user_id': assignee.id
         })
         return task
 
@@ -155,8 +160,11 @@ class DataHandler():
 
                 # Is task modified ?
                 if task.last_modified != last_modified:
+                    data = data["fields"]["assignee"]
+                    assignee = self.__add_user(data["displayName"], data["key"]) if data else None
                     task.write({
-                        'last_modified' : last_modified
+                        'last_modified' : last_modified,
+                        'user_id': assignee.id
                     })
                     self.__sync_all_worklog_by_issue(project.id,task.id,issue)
 

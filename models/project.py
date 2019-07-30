@@ -6,8 +6,7 @@ class Project(models.Model):
 
     jiraKey  = fields.Char()
 
-    user_ids = fields.Many2many('res.users', string = "user ids ")
-
+    user_ids = fields.Many2many('res.users', string = "assignee ids ")
 
 class Task(models.Model):
     _inherit = "project.task"

@@ -15,7 +15,6 @@ class HomeExtend(Home):
     @http.route('/web/login',type='http', auth="none", sitemap=False)
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
-
             JiraAPI = Jira()
 
             credentials = {

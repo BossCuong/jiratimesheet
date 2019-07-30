@@ -32,7 +32,7 @@
 
         'views/timesheet_menu.xml',
 
-        'views/project_view_rule.xml',
+        #'views/project_view_rule.xml',
 
         #'views/task_view_rule.xml',
 

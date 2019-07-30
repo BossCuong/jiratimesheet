@@ -18,10 +18,17 @@
             </a>
 
             <div class="dropdown-menu o_filters_menu" role="menu">
-                <t t-foreach="options['employees']" t-as="a">
-                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="a.get('name')" t-att-data-id="a.get('id')" data-filter="type"><t t-esc="a.get('name')"/></a>
+                <t t-foreach="options['employees']" t-as="j">
+                    <t t-if="j.get('id') == 'divider'">
+                        <div role="separator" class="dropdown-divider"/>
+                        <b role="menuitem" class="ml4 dropdown-item-text"><t t-esc="j.get('name')"/></b>
+                        <div role="separator" class="dropdown-divider"/>
+                    </t>
+                    <t t-if="j.get('id') != 'divider'">
+                        <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="j.get('name')+ '-' + j.get('code')" t-att-data-id="j.get('id')" data-filter="employees"><t t-esc="j.get('name')"/></a>
+                    </t>
                 </t>
-            </div>
+          </div>
 
         </template>
 
@@ -40,10 +47,17 @@
             </a>
 
             <div class="dropdown-menu o_filters_menu" role="menu">
-                <t t-foreach="options['projects']" t-as="a">
-                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="a.get('name')" t-att-data-id="a.get('id')" data-filter="type"><t t-esc="a.get('name')"/></a>
+                <t t-foreach="options['projects']" t-as="j">
+                    <t t-if="j.get('id') == 'divider'">
+                        <div role="separator" class="dropdown-divider"/>
+                        <b role="menuitem" class="ml4 dropdown-item-text"><t t-esc="j.get('name')"/></b>
+                        <div role="separator" class="dropdown-divider"/>
+                    </t>
+                    <t t-if="j.get('id') != 'divider'">
+                        <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="j.get('name')+ '-' + j.get('code')" t-att-data-id="j.get('id')" data-filter="projects"><t t-esc="j.get('name')"/></a>
+                    </t>
                 </t>
-            </div>
+          </div>
 
         </template>
 
@@ -62,10 +76,17 @@
             </a>
 
             <div class="dropdown-menu o_filters_menu" role="menu">
-                <t t-foreach="options['tasks']" t-as="a">
-                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="a.get('name')" t-att-data-id="a.get('id')" data-filter="type"><t t-esc="a.get('name')"/></a>
+                <t t-foreach="options['tasks']" t-as="j">
+                    <t t-if="j.get('id') == 'divider'">
+                        <div role="separator" class="dropdown-divider"/>
+                        <b role="menuitem" class="ml4 dropdown-item-text"><t t-esc="j.get('name')"/></b>
+                        <div role="separator" class="dropdown-divider"/>
+                    </t>
+                    <t t-if="j.get('id') != 'divider'">
+                        <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="j.get('name')+ '-' + j.get('code')" t-att-data-id="j.get('id')" data-filter="tasks"><t t-esc="j.get('name')"/></a>
+                    </t>
                 </t>
-            </div>
+          </div>
 
         </template>
 

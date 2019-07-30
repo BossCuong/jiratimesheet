@@ -3,7 +3,6 @@ from odoo.http import request
 from .api import Jira
 from .utils import to_UTCtime,to_localTime
 
-
 class DataHandler():
     def __init__(self, login):
         userDB = request.env['res.users'].sudo().with_context(active_test=False)

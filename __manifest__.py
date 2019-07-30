@@ -20,7 +20,7 @@
     'version': '0.1',
     'application': True,
     # any module necessary for this one to work correctly
-    'depends': ['base','web_grid' ,'hr_timesheet','account_reports', 'queue_job'],
+    'depends': ['base','web_grid' ,'hr_timesheet','account_reports','project','hr','queue_job'],
 
     # always loaded
     'data': [

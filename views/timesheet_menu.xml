@@ -5,13 +5,29 @@
 
     <record
         model="ir.actions.act_window"
-        id="action_timesheet_views">
+        id="action_my_timesheet_views">
         <field name="name">jira timesheet</field>
         <field name="res_model">account.analytic.line</field>
         <field name="view_mode">grid,graph,list</field>
         <field name="view_id" ref="timesheet_line_grid"/>
 
         <field name="context">{
+                'search_default_filter_todo_worklog': 1,
+                'search_default_filter_inprogress_worklog': 1,
+            }</field>
+    </record>
+
+    <record
+        model="ir.actions.act_window"
+        id="action_all_timesheet_views">
+        <field name="name">All timesheet</field>
+        <field name="res_model">account.analytic.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="timesheet_line_grid"/>
+        <field name="context">{
+                'search_default_group_by_project': 1,
+                'search_default_group_by_task': 1,
+                'search_default_group_by_employee': 1,
                 'search_default_filter_todo_worklog': 1,
                 'search_default_filter_inprogress_worklog': 1,
             }</field>
@@ -37,16 +53,28 @@
 
     <menuitem id = "menu_timesheet_views"
               name = "Views"
-              action = "action_timesheet_views"
               parent = "timesheet_menu"
               sequence = "1"
             />
+
+    <menuitem id="menu_my_timesheet"
+              name="My Timesheet"
+              action="action_my_timesheet_views"
+              parent="menu_timesheet_views"
+    />
+
+    <menuitem id="menu_all_timesheet"
+              name="All Timesheet"
+              action="action_all_timesheet_views"
+              parent="menu_timesheet_views"
+    />
 
     <menuitem id = "menu_timesheet_report"
       name = "Reports"
       parent = "timesheet_menu"
       sequence = "2"
     />
+
 
     <menuitem id="menu_report_by_project_task"
               name="Group By Task"

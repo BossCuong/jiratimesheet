@@ -65,7 +65,6 @@ class report_project_task(models.AbstractModel):
             if line_id :
 
                 results = self._get_all_project(date_from, date_to, selected_project, selected_task, line_id[2:])
-
                 total = 0
                 for line in results:
                     for line in results:

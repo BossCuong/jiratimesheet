@@ -45,7 +45,6 @@ class Jira():
     def getAllIssues(self):
         searchRange = 50
         startIdx = 0
-        endIdx = 50
         data = []
         while(True):
             httpResponse = requests.post(
@@ -54,7 +53,7 @@ class Jira():
                 json = {
                     "jql": "",
                     "startAt": startIdx,
-                    "maxResults": endIdx,
+                    "maxResults": searchRange,
                     "fields": [
                         "project",
                         "status",
@@ -69,11 +68,10 @@ class Jira():
             if httpResponse.status_code == 200:
                 res = httpResponse.json()["issues"]
                 data.extend(res)
-                if len(res) <= (endIdx - startIdx):
+                if len(res) < searchRange:
                     break
                 else:
-                    startIdx = endIdx
-                    endIdx += searchRange
+                    startIdx += searchRange
 
         return data
 

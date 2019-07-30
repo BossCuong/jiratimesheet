@@ -64,6 +64,11 @@
               <filter name="filter_worklog"
                       string="Unit amount > 0"
                       domain="[('unit_amount','>', 0)]"/>
+              <separator/>
+              <filter string="project" name="group_by_project" context="{'group_by': 'project_id'}" />
+              <filter string="employee" name="group_by_employee" context="{'group_by': 'employee_id'}" />
+              <filter string="task" name="group_by_task" context="{'group_by': 'task_id'}" />
+
           </search>
         </field>
     </record>

@@ -160,7 +160,7 @@ class DataHandler():
 
                 # Is task modified ?
                 if task.last_modified != last_modified:
-                    data = data["fields"]["assignee"]
+                    data = issue["fields"]["assignee"]
                     assignee = self.__add_user(data["displayName"], data["key"]) if data else None
                     task.write({
                         'last_modified' : last_modified,

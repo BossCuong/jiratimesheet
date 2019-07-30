@@ -37,10 +37,9 @@ class DataHandler():
         return project
 
     def __create_task(self,project_id,data):
+        res = data["fields"]["assignee"]
 
-        data = data["fields"]["assignee"]
-
-        assignee = self.__add_user(data["displayName"], data["key"]) if data else None
+        assignee_id = self.__add_user(res["displayName"], res["key"]).id if res else None
 
         task = self.taskDB.create({
             'name': data["key"],
@@ -49,7 +48,7 @@ class DataHandler():
             'project_id': project_id,
             'summary': data["fields"]["summary"],
             'status': data["fields"]["status"]["name"],
-            'user_id': assignee.id
+            'user_id': assignee_id
         })
         return task
 
@@ -161,10 +160,10 @@ class DataHandler():
                 # Is task modified ?
                 if task.last_modified != last_modified:
                     data = issue["fields"]["assignee"]
-                    assignee = self.__add_user(data["displayName"], data["key"]) if data else None
+                    assignee_id = self.__add_user(data["displayName"], data["key"]).id if data else None
                     task.write({
                         'last_modified' : last_modified,
-                        'user_id': assignee.id
+                        'user_id': assignee_id
                     })
                     self.__sync_all_worklog_by_issue(project.id,task.id,issue)
 

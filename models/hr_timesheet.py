@@ -84,6 +84,7 @@ class Timesheet(models.Model):
 
             if httpResponse:
                 vals['last_modified'] = to_UTCtime(httpResponse["updated"])
+                vals['jiraKey'] = httpResponse["id"]
             else:
                 raise UserError(_("Falled to update"))
 

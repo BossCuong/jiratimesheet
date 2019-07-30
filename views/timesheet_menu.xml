@@ -25,6 +25,9 @@
         <field name="view_mode">list</field>
         <field name="view_id" ref="timesheet_line_grid"/>
         <field name="context">{
+                'search_default_group_by_project': 1,
+                'search_default_group_by_task': 1,
+                'search_default_group_by_employee': 1,
                 'search_default_filter_todo_worklog': 1,
                 'search_default_filter_inprogress_worklog': 1,
             }</field>

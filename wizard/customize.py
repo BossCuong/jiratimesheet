@@ -38,12 +38,11 @@ class transientTest(models.TransientModel):
             'project_id': self.project_ID,
             'employee_id': employee.id,
             'unit_amount': self.duration,
-            'description' : self.Description,
             'name' : self.Description,
             'date': time,
         })
 
-        action = self.env.ref('jiratimesheet.action_timesheet_views').read()[0]
+        action = self.env.ref('jiratimesheet.action_my_timesheet_views').read()[0]
         action['target'] = 'main'
         action['context'] = {'grid_anchor' : fields.Date.to_string(self.Date)}
         return action

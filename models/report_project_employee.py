@@ -20,11 +20,25 @@ class report_project_employee(models.AbstractModel):
         lines = []
         date_from = options['date']['date_from']
         date_to = options['date']['date_to']
+        selected_projects = options['projects']
+        selected_employees   = options['employees']
+
+        selected_project    = []
+        selected_employee   = []
+
+        for project in selected_projects :
+            if project['selected']:
+                selected_project += [str(project['id'])]
+
+        for employee in selected_employees :
+            if employee['selected']:
+                selected_employee += [str(employee['id'])]
+
         lines = []
         context = self.env.context
         if context.get('print_mode') is None :
             if line_id == None :
-                results = self._get_all_project(date_from, date_to, line_id)
+                results = self._get_all_project(date_from, date_to, selected_project, selected_employee, line_id)
 
                 total = 0
                 for line in results:
@@ -46,9 +60,7 @@ class report_project_employee(models.AbstractModel):
                 })
 
             if line_id :
-
-                results = self._get_all_project(date_from, date_to, line_id[2:])
-
+                results = self._get_all_project(date_from, date_to, selected_project, selected_employee, line_id[2:])
                 total = 0
                 for line in results:
                     for line in results:
@@ -62,7 +74,7 @@ class report_project_employee(models.AbstractModel):
                             'columns': [{'name': line.get('name'), 'name': self.convert_float2floatime(round(line.get('total'),3))}],
                         })
 
-                results_task = self._get_all_employee(date_from, date_to, line_id[2:])
+                results_task = self._get_all_employee(date_from, date_to, selected_project, selected_employee, line_id[2:])
 
                 for line_task in results_task:
                     if line_task.get('total') < 0.00000001:
@@ -78,6 +90,43 @@ class report_project_employee(models.AbstractModel):
                         'columns': [{'name': line_task.get('name'), 'name': self.convert_float2floatime(round(line_task.get('total'),3))}]
                 })
             return lines
+        else :
+            results = self._get_all_project(date_from, date_to, selected_project, selected_employee, line_id)
+
+            total = 0
+            for line in results:
+                total += line.get('total')
+                lines.append({
+                    'id': str(line.get('id')),
+                    'name': line.get('name'),
+                    'level': 2,
+                    'unfoldable': True,
+                    'unfolded': True,
+                    'columns': [
+                        {'name': line.get('name'), 'name': self.convert_float2floatime(round(line.get('total'), 3))}],
+                })
+                results_task = self._get_all_employee(date_from, date_to, selected_project, selected_employee, str(line.get('id')))
+
+                for line_task in results_task:
+                    if line_task.get('total') < 0.00000001:
+                        continue
+                    lines.append({
+                        'id': str(line.get('id')),
+                        'name': line_task.get('name'),
+                        'parent_id': str(line.get('id')),
+                        'level': 3,
+                        'caret_options': 'project.employee',
+                        'unfoldable' : False,
+                        'columns': [{'name': line_task.get('name'), 'name': self.convert_float2floatime(round(line_task.get('total'),3))}]
+                })
+            lines.append({
+                'id': 'total',
+                'name': _('Total'),
+                'level': 0,
+                'class': 'total',
+                'columns': [{'name': self.convert_float2floatime(round(total, 3))}]
+            })
+
 
     def convert_float2floatime(self, time):
         return '{0:02.0f}:{1:02.0f}'.format(*divmod(float(time) * 60, 60))
@@ -150,49 +199,44 @@ class report_project_employee(models.AbstractModel):
         }
 
 
-    def _get_all_project(self,date_from, date_to, line_id):
-        if line_id == None :
-            sql_query = """
-                SELECT
-                       "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
-                FROM account_analytic_line, project_project
-                WHERE  "account_analytic_line".project_id = "project_project".id
-                AND "account_analytic_line".date >= '""" + date_from + """'
-                AND "account_analytic_line".date <= '""" + date_to + """'
-                GROUP BY "project_project".id
-            """
-
-            self.env.cr.execute(sql_query)
-            results = self.env.cr.dictfetchall()
-            return results
-        else :
-            sql_query = """
-                SELECT
-                       "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
-                FROM account_analytic_line LEFT JOIN project_project 
-                ON "account_analytic_line".project_id = "project_project".id
-                WHERE "account_analytic_line".project_id = """ + line_id + """
-                AND "account_analytic_line".date >= '""" + date_from + """'
-                AND "account_analytic_line".date <= '""" + date_to + """'
-                GROUP BY "project_project".id
-            """
-
-            self.env.cr.execute(sql_query)
-            results = self.env.cr.dictfetchall()
-            return results
-
-    def _get_all_employee(self,date_from, date_to, line_id):
-        query_task = """
-            SELECT
-                   "hr_employee".name, "hr_employee".id, sum("account_analytic_line".unit_amount) as total
-            FROM account_analytic_line LEFT JOIN hr_employee
-            ON "account_analytic_line".employee_id = "hr_employee".id 
-            AND "account_analytic_line".project_id = """ + line_id + """
+    def _get_all_project(self,date_from, date_to, selected_project, selected_employee, line_id):
+        sql_query = """
+            SELECT "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
+            FROM account_analytic_line LEFT JOIN project_project 
+            ON "account_analytic_line".project_id = "project_project".id
             WHERE "account_analytic_line".date >= '""" + date_from + """'
             AND "account_analytic_line".date <= '""" + date_to + """'
-            GROUP BY "hr_employee".id
+            
+        """
+        if len(selected_employee) > 0:
+            sql_query += """AND "account_analytic_line".employee_id IN (""" + ','.join(selected_employee) + """)"""
+        if len(selected_project) > 0:
+            sql_query += """AND "account_analytic_line".project_id IN (""" + ','.join(selected_project) + """)"""
+        if line_id:
+            sql_query += """AND "account_analytic_line".project_id = """ + line_id + """ """
+
+        sql_query += """GROUP BY "project_project".id"""
+        self.env.cr.execute(sql_query)
+        results = self.env.cr.dictfetchall()
+        return results
+
+    def _get_all_employee(self,date_from, date_to, selected_project, selected_employee, line_id):
+        sql_query = """
+                SELECT "hr_employee".name, "hr_employee".id, sum("account_analytic_line".unit_amount) as total
+                FROM account_analytic_line LEFT JOIN hr_employee
+                ON "account_analytic_line".employee_id = "hr_employee".id 
+                WHERE "account_analytic_line".date >= '""" + date_from + """'
+                AND "account_analytic_line".date <= '""" + date_to + """'
         """
 
-        self.env.cr.execute(query_task)
+        if len(selected_employee) > 0:
+            sql_query += """AND "account_analytic_line".employee_id IN (""" + ','.join(selected_employee) + """)"""
+        if len(selected_project) > 0:
+            sql_query += """AND "account_analytic_line".project_id IN (""" + ','.join(selected_project) + """)"""
+        if line_id:
+            sql_query += """AND "account_analytic_line".project_id = """ + line_id + """ """
+
+        sql_query += """GROUP BY "hr_employee".id"""
+        self.env.cr.execute(sql_query)
         results_employee = self.env.cr.dictfetchall()
         return results_employee

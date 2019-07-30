@@ -4,7 +4,7 @@ from odoo.exceptions import UserError
 class Project(models.Model):
     _inherit = "project.project"
 
-    jiraKey = fields.Char()
+    jiraKey  = fields.Char()
 
     user_ids = fields.Many2many('res.users', string = "assignee ids ")
 
@@ -13,7 +13,7 @@ class Task(models.Model):
 
     last_modified = fields.Datetime()
 
-    status = fields.Char()
+    status  = fields.Char()
 
     jiraKey = fields.Char()
 

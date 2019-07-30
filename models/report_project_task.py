@@ -20,14 +20,28 @@ class report_project_task(models.AbstractModel):
     @api.model
     def _get_lines(self, options, line_id = None):
         lines = []
-        date_from = options['date']['date_from']
-        date_to = options['date']['date_to']
-        print(type(date_from),date_to)
+        date_from   = options['date']['date_from']
+        date_to     = options['date']['date_to']
+        selected_projects = options['projects']
+        selected_tasks    = options['tasks']
+
+        selected_project = []
+        selected_task    = []
+
+        for project in selected_projects :
+            if project['selected']:
+                selected_project += [str(project['id'])]
+
+        for task in selected_tasks :
+            if task['selected']:
+                selected_task += [str(task['id'])]
+
         context = self.env.context
+
         if context.get('print_mode') is None :
             if line_id == None :
 
-                results = self._get_all_project(date_from, date_to, line_id)
+                results = self._get_all_project(date_from, date_to, selected_project, selected_task, line_id)
 
                 total = 0
                 for line in results:
@@ -45,12 +59,12 @@ class report_project_task(models.AbstractModel):
                     'name' : _('Total'),
                     'level' : 0,
                     'class' : 'total',
-                    'columns' : [{'name' : self.convert_float2floatime(round(round(total,3)))}]
+                    'columns' : [{'name' : self.convert_float2floatime(round(total,3))}]
                 })
 
             if line_id :
 
-                results = self._get_all_project(date_from, date_to)
+                results = self._get_all_project(date_from, date_to, selected_project, selected_task, line_id[2:])
 
                 total = 0
                 for line in results:
@@ -65,13 +79,13 @@ class report_project_task(models.AbstractModel):
                             'columns': [{'name': line.get('name'), 'name': self.convert_float2floatime(round(line.get('total'),3))}],
                         })
 
-                results_task = self._get_all_task(date_from, date_to, line_id[2:])
+                results_task = self._get_all_task(date_from, date_to, selected_project, selected_task, line_id[2:])
 
                 for line_task in results_task:
                     if line_task.get('total') < 0.00000001:
                         continue
                     lines.append({
-                        'id': "2_" + str(line.get('id')),
+                        'id': "2_" + str(line_task.get('id')),
                         'name': line_task.get('name'),
                         'parent_id': line_id,
                         'level': 3,
@@ -85,8 +99,7 @@ class report_project_task(models.AbstractModel):
 
         else :
 
-            results = self._get_all_project(date_from, date_to)
-
+            results = self._get_all_project(date_from, date_to, selected_project, selected_task, None)
             total = 0
             for line in results:
                 total += line.get('total')
@@ -99,7 +112,7 @@ class report_project_task(models.AbstractModel):
                     'columns': [{'name': line.get('name'), 'name': self.convert_float2floatime(round(line.get('total'), 3))}],
                 })
 
-                results_task = self._get_all_task(date_from, date_to, str(line.get('id')))
+                results_task = self._get_all_task(date_from, date_to, selected_project, selected_task, str(line.get('id')) )
 
                 for line_task in results_task:
                     if line_task.get('total') < 0.00000001:
@@ -175,58 +188,54 @@ class report_project_task(models.AbstractModel):
             })
         return tasks
 
-    def _get_all_project(self, date_from, date_to, line_id = None):
-        if line_id == None :
-            sql_query = """
-                                SELECT
-                                       "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
-                                FROM account_analytic_line, project_project
-                                WHERE  "account_analytic_line".project_id = "project_project".id
-                                AND "account_analytic_line".date >= '""" + date_from + """'
-                                AND "account_analytic_line".date <= '""" + date_to + """'
-                                GROUP BY "project_project".id
-                            """
+    def _get_all_project(self, date_from, date_to, selected_project, selected_task, line_id = None):
+        sql_query = """
+            SELECT
+                   "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
+            FROM account_analytic_line LEFT JOIN project_project
+            ON "account_analytic_line".project_id = "project_project".id
+            WHERE "account_analytic_line".date >= '""" + date_from + """'
+            AND "account_analytic_line".date <= '""" + date_to + """'
+            """
+        if len(selected_task) > 0:
+            sql_query += """AND "account_analytic_line".task_id IN (""" + ','.join(selected_task) + """)"""
+        if len(selected_project) > 0:
+            sql_query += """AND "account_analytic_line".project_id IN (""" + ','.join(selected_project) + """)"""
+        if line_id:
+            sql_query += """AND "account_analytic_line".project_id = """ + line_id + """ """
+        sql_query += """GROUP BY "project_project".id"""
 
-            self.env.cr.execute(sql_query)
-            results = self.env.cr.dictfetchall()
-            return results
-        else :
-            sql_query = """
-                                SELECT
-                                       "project_project".name, "project_project".id, sum("account_analytic_line".unit_amount) as total
-                                FROM account_analytic_line LEFT JOIN project_project
-                                ON "account_analytic_line".project_id = "project_project".id
-                                WHERE "account_analytic_line".project_id = """+ line_id +"""
-                                AND "account_analytic_line".date >= '""" + date_from + """'
-                                AND "account_analytic_line".date <= '""" + date_to + """'
-                                GROUP BY "project_project".id
-                            """
+        self.env.cr.execute(sql_query)
+        results = self.env.cr.dictfetchall()
+        return results
 
-            self.env.cr.execute(sql_query)
-            results = self.env.cr.dictfetchall()
-            return results
-
-    def _get_all_task(self, date_from, date_to, line_id):
-        query_task = """
+    def _get_all_task(self, date_from, date_to, selected_project, selected_task, line_id ):
+        sql_query = """
               SELECT
                      "project_task".name, "project_task".id,sum("account_analytic_line".unit_amount) as total
               FROM account_analytic_line LEFT JOIN project_task
               ON "account_analytic_line".task_id = "project_task".id 
-              AND "account_analytic_line".project_id = """ + line_id + """
               WHERE "account_analytic_line".date >= '""" + date_from + """'
               AND "account_analytic_line".date <= '""" + date_to + """'
-              GROUP BY "project_task".id
           """
+        if len(selected_task) > 0:
+            sql_query += """AND "account_analytic_line".task_id IN (""" + ','.join(selected_task) + """)"""
+        if len(selected_project) > 0:
+            sql_query += """AND "account_analytic_line".project_id IN (""" + ','.join(selected_project) + """)"""
+        if line_id:
+            sql_query += """AND "account_analytic_line".project_id = """ + line_id + """ """
 
-        self.env.cr.execute(query_task)
+        sql_query += """GROUP BY "project_task".id"""
+
+        self.env.cr.execute(sql_query)
         results_task = self.env.cr.dictfetchall()
         return results_task
 
     def _get_templates(self):
         templates = super(report_project_task, self)._get_templates()
-        templates['main_template'] = 'jiratimesheet.report_summary'
-        templates['search_template'] = 'jiratimesheet.reports_project_task_filter'
-        templates['line_template'] = 'jiratimesheet.task_caret_option_line_template'
+        templates['main_template']      = 'jiratimesheet.report_summary'
+        templates['search_template']    = 'jiratimesheet.reports_project_task_filter'
+        templates['line_template']      = 'jiratimesheet.task_caret_option_line_template'
         return templates
 
     def open_task_detail(self, options, params):
@@ -235,9 +244,9 @@ class report_project_task(models.AbstractModel):
 
         ctx = self.env.context.copy()
         ctx.pop('id', '')
-        print(ctx)
+
         # Redirect
-        view_id = self.env['ir.model.data'].get_object_reference('project', 'view_task_form2')[1]
+        view_id = self.env['ir.model.data'].sudo().get_object_reference('project', 'view_task_form2')[1]
         return {
             'type': 'ir.actions.act_window',
             'view_mode': 'form',

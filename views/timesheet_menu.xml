@@ -35,9 +35,17 @@
         <field name = "context" eval="{'model' : 'account.report.employee.project'}"/>
     </record>
 
+    <menuitem id = "menu_timesheet_views"
+              name = "Views"
+              action = "action_timesheet_views"
+              parent = "timesheet_menu"
+              sequence = "1"
+            />
+
     <menuitem id = "menu_timesheet_report"
       name = "Reports"
       parent = "timesheet_menu"
+      sequence = "2"
     />
 
     <menuitem id="menu_report_by_project_task"
@@ -58,9 +66,5 @@
               parent="menu_timesheet_report"
     />
 
-    <menuitem id = "menu_timesheet_views"
-              name = "Views"
-              action = "action_timesheet_views"
-              parent = "timesheet_menu"
-            />
+
 </odoo>

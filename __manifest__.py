@@ -20,7 +20,7 @@
     'version': '0.1',
     'application': True,
     # any module necessary for this one to work correctly
-    'depends': ['base','web_grid' ,'hr_timesheet','account_reports'],
+    'depends': ['base','web_grid' ,'hr_timesheet','account_reports', 'queue_job'],
 
     # always loaded
     'data': [
@@ -32,7 +32,7 @@
 
         'views/timesheet_menu.xml',
 
-        'views/project_view_rule.xml',
+        #'views/project_view_rule.xml',
 
         #'views/task_view_rule.xml',
 

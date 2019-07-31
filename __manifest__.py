@@ -28,6 +28,8 @@
         # 'security/ir.model.access.csv',
         'views/assets.xml',
 
+        #'static/src/xml/gridView.xml',
+
         'views/timesheet_view.xml',
 
         'views/timesheet_menu.xml',
@@ -41,6 +43,7 @@
         'views/search_template_view.xml'
 
     ],
+
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',

@@ -43,15 +43,16 @@ class Jira():
         return  httpResponse
 
     def getAllIssues(self):
-        searchRange = 50
         startIdx = 0
+        searchRange = 1
         data = []
-        while(True):
+        date_limit = "2019-07-20"
+        for i in range(2):
             httpResponse = requests.post(
                 url = self.url + "/rest/api/2/search",
                 headers= self.headers,
-                json = {
-                    "jql": "",
+                json= {
+                    "jql": "created >= %s" % (date_limit),
                     "startAt": startIdx,
                     "maxResults": searchRange,
                     "fields": [
@@ -72,6 +73,7 @@ class Jira():
                     break
                 else:
                     startIdx += searchRange
+                    searchRange = httpResponse.json()["total"] - searchRange
 
         return data
 

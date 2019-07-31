@@ -2,7 +2,8 @@ from odoo import http
 from odoo.http import request
 from .api import Jira
 from .utils import to_UTCtime,to_localTime
-
+import datetime as dt
+import pytz
 class DataHandler():
     def __init__(self, login):
         userDB = request.env['res.users'].sudo().with_context(active_test=False)
@@ -70,6 +71,12 @@ class DataHandler():
 
     def __create_worklog(self,project_id,task_id,worklog_info):
         time = to_UTCtime(worklog_info["started"])
+
+        time_limit = '2019-07-01 00:00:00'
+        time_limit = dt.datetime.strptime(time_limit, '%Y-%m-%d %H:%M:%S')
+
+        if time < time_limit:
+            return
 
         time = to_localTime(time,request.env.user["tz"])
 

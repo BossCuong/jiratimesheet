@@ -46,13 +46,12 @@ class Jira():
         startIdx = 0
         searchRange = 1
         data = []
-        date_limit = "2019-07-20"
         for i in range(2):
             httpResponse = requests.post(
                 url = self.url + "/rest/api/2/search",
                 headers= self.headers,
                 json= {
-                    "jql": "created >= %s" % (date_limit),
+                    "jql": "",
                     "startAt": startIdx,
                     "maxResults": searchRange,
                     "fields": [

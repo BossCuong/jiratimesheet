@@ -89,7 +89,7 @@ class report_project_employee(models.AbstractModel):
                         'unfoldable' : False,
                         'columns': [{'name': line_task.get('name'), 'name': self.convert_float2floatime(round(line_task.get('total'),3))}]
                 })
-            return lines
+
         else :
             results = self._get_all_project(date_from, date_to, selected_project, selected_employee, line_id)
 
@@ -111,7 +111,7 @@ class report_project_employee(models.AbstractModel):
                     if line_task.get('total') < 0.00000001:
                         continue
                     lines.append({
-                        'id': str(line.get('id')),
+                        'id': str(line_task.get('id')),
                         'name': line_task.get('name'),
                         'parent_id': str(line.get('id')),
                         'level': 3,
@@ -127,6 +127,7 @@ class report_project_employee(models.AbstractModel):
                 'columns': [{'name': self.convert_float2floatime(round(total, 3))}]
             })
 
+        return lines
 
     def convert_float2floatime(self, time):
         return '{0:02.0f}:{1:02.0f}'.format(*divmod(float(time) * 60, 60))

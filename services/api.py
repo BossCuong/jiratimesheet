@@ -90,7 +90,6 @@ class Jira():
 
         return data
 
-
     def get_project(self,project_key):
         httpResponse = requests.get(
             url=self.url + "/rest/api/2/project/%s" % (project_key),
@@ -104,6 +103,29 @@ class Jira():
             except Exception as e:
                 print(e)
                 data = []
+
+        return data
+
+    def get_all_project(self):
+        httpResponse = requests.get(
+            url=self.url + "/rest/api/2/project",
+            headers=self.headers
+        )
+
+        data = []
+        if httpResponse.status_code == 200:
+            try:
+                data = httpResponse.json()
+            except Exception as e:
+                print(e)
+                data = []
+
+        res = []
+
+        for project in data:
+            res.append(self.get_project(project["id"]))
+
+        data = res
 
         return data
 
@@ -158,14 +180,28 @@ class Jira():
             return False
 
     def get_user(self, username):
-        reponse = requests.get(
+        httpResponse = requests.get(
             url=self.url + "/rest/api/2/user",
             headers=self.headers,
             params={
                 "username": username
             }
         )
-        if reponse.status_code == 200:
-            return reponse.json()
+        if httpResponse.status_code == 200:
+            return httpResponse.json()
         else:
             return None
+
+    def get_all_user(self):
+        httpResponse = requests.get(
+            url=self.url + "/rest/api/2/user/search",
+            headers=self.headers,
+            params={
+                "username": "%"
+            }
+        )
+        if httpResponse.status_code == 200:
+            return httpResponse.json()
+        else:
+            return None
+

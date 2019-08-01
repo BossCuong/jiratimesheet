@@ -5,6 +5,13 @@ from .utils import to_UTCtime,to_localTime
 import datetime as dt
 import pytz
 class DataHandler():
+
+    user_dict = {}
+    employee_dict = {}
+    project_dict = {}
+    task_dict = {}
+    worklog_dict = {}
+
     def __init__(self, login):
         userDB = request.env['res.users'].sudo().with_context(active_test=False)
 
@@ -23,40 +30,29 @@ class DataHandler():
         self.userDB = request.env['res.users'].sudo().with_context(active_test=False)
 
     def __create_project(self,data):
-        project_info = data["fields"]["project"]
+        project = self.projectDB.search([('jiraKey', '=', data["id"])])
 
-        project_detail = self.JiraAPI.get_project(project_info["key"])
-
-        project_lead = self.__add_user(project_detail["lead"]["displayName"],project_detail["lead"]["key"])
-
-        project = self.projectDB.create({
-                    'name': project_info["name"],
-                    'jiraKey': project_info["id"],
-                    'user_id' : project_lead.id,
-                    'user_ids': [(4, self.user.id, 0)]
-                })
+        if not project:
+            project = self.projectDB.create({
+                        'name': data["name"],
+                        'jiraKey': data["id"],
+                        'user_id' : self.user_dict[data["lead"]["key"]],
+                        'user_ids': [(4, self.user.id, 0)]
+                    })
         return project
 
-    def __create_task(self,project_id,data):
-        res = data["fields"]["assignee"]
+    def __create_all_project(self):
+        jira_projects = self.JiraAPI.get_all_project()
 
-        assignee_id = self.__add_user(res["displayName"], res["key"]).id if res else None
+        for jira_project in jira_projects:
+            if not self.project_dict.get(jira_project["id"]):
+                db_project = self.__create_project(jira_project)
+                self.project_dict[jira_project["id"]] = db_project.id
 
-        task = self.taskDB.create({
-            'name': data["key"],
-            'jiraKey': data["id"],
-            'last_modified': to_UTCtime(data["fields"]["updated"]),
-            'project_id': project_id,
-            'summary': data["fields"]["summary"],
-            'status': data["fields"]["status"]["name"],
-            'user_id': assignee_id
-        })
-        return task
+    def __create_user(self,name,login):
+        user = self.userDB.search([('login', '=', login)])
 
-    def __add_user(self,name,login):
-        currentUser = self.userDB.search([('login', '=', login)])
-
-        if not currentUser:
+        if not user:
             user = {
                 'name': name,
                 'login': login,
@@ -65,11 +61,45 @@ class DataHandler():
                 'email': login,
                 'employee_ids': [(0, 0, {'name': name,'work_email': login})],
             }
-            currentUser = request.env.ref('base.default_user').sudo().copy(user)
+            user = request.env.ref('base.default_user').sudo().copy(user)
 
-        return currentUser
+        return user
 
-    def __create_worklog(self,project_id,task_id,worklog_info):
+    def __create_all_user_and_employee(self):
+        jira_users = self.JiraAPI.get_all_user()
+
+        for jira_user in jira_users:
+            if not self.user_dict.get(jira_user["key"]):
+                db_user = self.__add_user(jira_user["displayName"], jira_user["key"])
+                self.user_dict[jira_user["key"]] = db_user.id
+                self.employee_dict[jira_user["key"]] = db_user.employee_ids[0].id
+
+    def __create_task(self, project_id, data, check_first_create=False):
+        first_create = False
+        task = self.taskDB.search([('jiraKey', '=', data["id"])])
+
+        if not task:
+            first_create = True
+            res = data["fields"]["assignee"]
+
+            assignee_id = self.user_dict.get(res["key"]).id if res else None
+
+            task = self.taskDB.create({
+                'name': data["key"],
+                'jiraKey': data["id"],
+                'last_modified': to_UTCtime(data["fields"]["updated"]),
+                'project_id': project_id,
+                'summary': data["fields"]["summary"],
+                'status': data["fields"]["status"]["name"],
+                'user_id': assignee_id
+            })
+
+        if check_first_create:
+            return task, first_create
+
+        return task
+
+    def __create_worklog(self, project_id, task_id, worklog_info):
         time = to_UTCtime(worklog_info["started"])
 
         time_limit = '2019-07-01 00:00:00'
@@ -78,14 +108,14 @@ class DataHandler():
         if time < time_limit:
             return
 
-        time = to_localTime(time,request.env.user["tz"])
+        time = to_localTime(time, request.env.user["tz"])
 
-        author = self.__add_user(worklog_info["author"]["displayName"],worklog_info["author"]["key"])
+        author_id = self.employee_dict.get(worklog_info["author"]["key"])
 
         worklog = self.timesheetDB.create({
                                 'task_id': task_id,
                                 'project_id': project_id,
-                                'employee_id': author.employee_ids[0].id,
+                                'employee_id': author_id,
                                 'unit_amount': worklog_info["timeSpentSeconds"] / (60 * 60),
                                 'name': worklog_info["comment"],
                                 'date': time,
@@ -94,19 +124,19 @@ class DataHandler():
                             })
         return worklog
 
-    def __create_all_worklog_by_issue(self,project_id,task_id,data):
-        workLogs = self.JiraAPI.getAllWorklogByIssue(data["id"])
+    def __create_all_worklog_by_issue(self, project_id, task_id, data):
+        worklogs = self.JiraAPI.getAllWorklogByIssue(data["id"])
 
         # Creat default worklog if issue has no worklog to show on view
-        if not workLogs:
+        if not worklogs:
             self.timesheetDB.create({
                 'task_id': task_id,
                 'project_id': project_id,
                 'employee_id': self.user.employee_ids[0].id,
             })
         else:
-            for workLog in workLogs:
-                self.__create_worklog(project_id,task_id,workLog)
+            for worklog in worklogs:
+                self.__create_worklog(project_id, task_id, worklog)
 
     def __sync_all_worklog_by_issue(self,project_id,task_id,data):
         #Update worklog
@@ -151,37 +181,40 @@ class DataHandler():
         return self.projectDB.search([('jiraKey', '=', project_key)])
 
     def sync_data_from_jira(self):
+        self.__create_all_user_and_employee()
+        self.__create_all_project()
+
         issues = self.JiraAPI.getAllIssues()
 
         for issue in issues:
-            task = self.__find_task(issue)
-            #Use hash table for this shit
-            project = self.__find_project(issue)
+            project_id = self.project_dict.get(issue["fields"]["project"]["id"])
+            project = self.projectDB.browse(project_id)
+            project.sudo().write({'user_ids': [(4, self.user.id, 0)]})
 
-            if project:
-                project.sudo().write({'user_ids': [(4, self.user.id, 0)]})
+            task_id = self.task_dict.get(issue["id"])
+            if not task_id:
+                task, is_task_first_create = self.__create_task(project_id, issue, check_first_create=True)
+                task[issue["id"]] = task.id
 
-            if task:
-                last_modified = to_UTCtime(issue["fields"]["updated"])
+                if is_task_first_create:
+                    self.__create_all_worklog_by_issue(project.id, task.id, issue)
+                    continue
+            else:
+                task = self.taskDB.browse(task_id)
 
-                # Is task modified ?
-                if task.last_modified != last_modified:
-                    data = issue["fields"]["assignee"]
-                    assignee_id = self.__add_user(data["displayName"], data["key"]).id if data else None
-                    task.write({
-                        'last_modified' : last_modified,
-                        'user_id': assignee_id
-                    })
-                    self.__sync_all_worklog_by_issue(project.id,task.id,issue)
 
-                continue
+            ##Update task
+            last_modified = to_UTCtime(issue["fields"]["updated"])
 
-            if not project:
-                project = self.__create_project(issue)
-
-            task = self.__create_task(project.id,issue)
-
-            self.__create_all_worklog_by_issue(project.id,task.id,issue)
+            # Is task modified ?
+            if task.last_modified != last_modified:
+                data = issue["fields"]["assignee"]
+                assignee_id = self.__add_user(data["displayName"], data["key"]).id if data else None
+                task.write({
+                    'last_modified' : last_modified,
+                    'user_id': assignee_id
+                })
+                self.__sync_all_worklog_by_issue(project.id, task.id, issue)
 
         request.env.cr.commit()
 

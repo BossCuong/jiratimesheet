@@ -35,8 +35,10 @@ class HomeExtend(Home):
 
                 user_display_name = user_data_on_jira["displayName"]
 
+                first_sync_flag = False
                 #If user not exist,creat one
                 if not currentUser:
+                    first_sync_flag = True
                     user = {
                         'login': request.params['login'],
                         'active': True,
@@ -59,7 +61,8 @@ class HomeExtend(Home):
 
                 request.env.cr.commit()
 
-                request.env['account.analytic.line'].sudo().with_delay().sync_data(request.params['login'])
+                if first_sync_flag:
+                    request.env['account.analytic.line'].sudo().with_delay().sync_data(request.params['login'])
 
         response = super().web_login(redirect, **kw)
 

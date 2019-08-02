@@ -47,18 +47,35 @@ class Timesheet(models.Model):
         self.sync_data(self.env.user["login"])
 
     @api.multi
-    @job
-    def sync_data(self,login):
+    @job(retry_pattern={
+        1: 1 * 60,
+        5: 3 * 60,
+        10: 5 * 60,
+        15: 10 * 60 * 60
+    })
+    def sync_data(self, login):
         dataHandler = DataHandler(login)
 
         dataHandler.sync_data_from_jira()
+
+    @api.multi
+    @job(retry_pattern={
+        1: 1 * 60,
+        5: 3 * 60,
+        10: 5 * 60,
+        15: 10 * 60 * 60
+    })
+    def update_issue(self, login, issues):
+        dataHandler = DataHandler(login)
+
+        dataHandler.update_issues(issues)
 
     @api.multi
     def button_sync(self):
         if not self.env.user["authorization"]:
             raise UserError(_("Please authenticated"))
 
-        self.sync_data(self.env.user["login"])
+        self.sudo().with_delay().sync_data(self.env.user["login"])
 
     @api.model
     def create(self, vals):
@@ -88,6 +105,8 @@ class Timesheet(models.Model):
             else:
                 raise UserError(_("Falled to update"))
 
+        if not vals.get('name'):
+            vals['name'] = _('/')
         return super(Timesheet, self).create(vals)
 
     @api.multi

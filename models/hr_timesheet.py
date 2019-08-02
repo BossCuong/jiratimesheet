@@ -65,10 +65,10 @@ class Timesheet(models.Model):
         10: 5 * 60,
         15: 10 * 60 * 60
     })
-    def update_issue(self, login, issues):
+    def update_issue(self, login, **data):
         dataHandler = DataHandler(login)
 
-        dataHandler.update_issues(issues)
+        dataHandler.update_issues(data)
 
     @api.multi
     def button_sync(self):

@@ -195,12 +195,24 @@ class DataHandler():
 
                 if fold == num_folds:
                     end_idx = num_issues % 200
-                request.env['account.analytic.line'].sudo().with_delay().update_issue(self.user.login, issues[start_idx:end_idx])
+                request.env['account.analytic.line'].sudo().with_delay().update_issue(self.user.login,
+                                                                                      project_dict=self.project_dict,
+                                                                                      emploeee_dict=self.employee_dict,
+                                                                                      user_dict=self.user_dict,
+                                                                                      issues=issues[start_idx:end_idx])
         else:
-            request.env['account.analytic.line'].sudo().with_delay().update_issue(self.user.login, issues)
+            request.env['account.analytic.line'].sudo().with_delay().update_issue(self.user.login,
+                                                                                  project_dict=self.project_dict,
+                                                                                  emploeee_dict=self.employee_dict,
+                                                                                  user_dict=self.user_dict,
+                                                                                  issues=issues)
 
+    def update_issues(self, data):
+        self.project_dict = data.get("project_dict")
+        self.user_dict = data.get("user_dict")
+        self.employee_dict = data.get("employee_dict")
+        issues = data.get("issues")
 
-    def update_issues(self, issues):
         cnt = 0
         for issue in issues:
             print(cnt)

@@ -213,10 +213,10 @@ class DataHandler():
         self.employee_dict = data.get("employee_dict")
         issues = data.get("issues")
 
-        cnt = 0
+        #cnt = 0
         for issue in issues:
-            print(cnt)
-            cnt += 1
+            #print(cnt)
+            #cnt += 1
             project_id = self.project_dict.get(issue["fields"]["project"]["id"])
             project = self.projectDB.browse(project_id)
             project.sudo().write({'user_ids': [(4, self.user.id, 0)]})

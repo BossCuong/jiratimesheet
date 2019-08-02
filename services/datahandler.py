@@ -36,7 +36,7 @@ class DataHandler():
             project = self.projectDB.create({
                         'name': data["name"],
                         'jiraKey': data["id"],
-                        'user_id' : self.user_dict[data["lead"]["key"]],
+                        'user_id': self.user_dict.get(data["lead"]["key"]),
                         'user_ids': [(4, self.user.id, 0)]
                     })
         return project
@@ -49,7 +49,7 @@ class DataHandler():
                 db_project = self.__create_project(jira_project)
                 self.project_dict[jira_project["id"]] = db_project.id
 
-    def __create_user(self,name,login):
+    def __create_user(self, name, login):
         user = self.userDB.search([('login', '=', login)])
 
         if not user:
@@ -70,7 +70,7 @@ class DataHandler():
 
         for jira_user in jira_users:
             if not self.user_dict.get(jira_user["key"]):
-                db_user = self.__add_user(jira_user["displayName"], jira_user["key"])
+                db_user = self.__create_user(jira_user["displayName"], jira_user["key"])
                 self.user_dict[jira_user["key"]] = db_user.id
                 self.employee_dict[jira_user["key"]] = db_user.employee_ids[0].id
 
@@ -82,7 +82,7 @@ class DataHandler():
             first_create = True
             res = data["fields"]["assignee"]
 
-            assignee_id = self.user_dict.get(res["key"]).id if res else None
+            assignee_id = self.user_dict.get(res["key"]) if res else None
 
             task = self.taskDB.create({
                 'name': data["key"],
@@ -132,13 +132,12 @@ class DataHandler():
             self.timesheetDB.create({
                 'task_id': task_id,
                 'project_id': project_id,
-                'employee_id': self.user.employee_ids[0].id,
             })
         else:
             for worklog in worklogs:
                 self.__create_worklog(project_id, task_id, worklog)
 
-    def __sync_all_worklog_by_issue(self,project_id,task_id,data):
+    def __sync_all_worklog_by_issue(self, project_id, task_id, data):
         #Update worklog
         workLogs = self.JiraAPI.getAllWorklogByIssue(data["id"])
 
@@ -151,13 +150,13 @@ class DataHandler():
             res = self.timesheetDB.search([('jiraKey', '=', workLog["id"])])
 
             if not res:
-                self.__create_worklog(project_id,task_id,workLog)
+                self.__create_worklog(project_id, task_id, workLog)
             else:
                 isLogModified = (res.last_modified != to_UTCtime(workLog["updated"]))
 
                 if isLogModified:
                     res.with_context(_is_not_sync_on_jira=True).write({
-                        'name' : workLog["comment"],
+                        'name' : workLog["comment"], #fix this
                         'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                         'last_modified' : to_UTCtime(workLog["updated"])
                     })
@@ -186,7 +185,26 @@ class DataHandler():
 
         issues = self.JiraAPI.getAllIssues()
 
+        num_issues = len(issues)
+
+        if num_issues > 200:
+            num_folds = num_issues // 200
+            for fold in range(num_folds + 1):
+                start_idx = fold*200
+                end_idx = (fold+1)*200
+
+                if fold == num_folds:
+                    end_idx = num_issues % 200
+                request.env['account.analytic.line'].sudo().with_delay().update_issue(self.user.login, issues[start_idx:end_idx])
+        else:
+            request.env['account.analytic.line'].sudo().with_delay().update_issue(self.user.login, issues)
+
+
+    def update_issues(self, issues):
+        cnt = 0
         for issue in issues:
+            print(cnt)
+            cnt += 1
             project_id = self.project_dict.get(issue["fields"]["project"]["id"])
             project = self.projectDB.browse(project_id)
             project.sudo().write({'user_ids': [(4, self.user.id, 0)]})
@@ -194,7 +212,7 @@ class DataHandler():
             task_id = self.task_dict.get(issue["id"])
             if not task_id:
                 task, is_task_first_create = self.__create_task(project_id, issue, check_first_create=True)
-                task[issue["id"]] = task.id
+                self.task_dict[issue["id"]] = task.id
 
                 if is_task_first_create:
                     self.__create_all_worklog_by_issue(project.id, task.id, issue)
@@ -208,14 +226,15 @@ class DataHandler():
 
             # Is task modified ?
             if task.last_modified != last_modified:
-                data = issue["fields"]["assignee"]
-                assignee_id = self.__add_user(data["displayName"], data["key"]).id if data else None
+                assignee = issue["fields"]["assignee"]
+                assignee_id = self.user_dict.get(assignee["key"]) if assignee else None
                 task.write({
-                    'last_modified' : last_modified,
+                    'last_modified': last_modified,
                     'user_id': assignee_id
                 })
                 self.__sync_all_worklog_by_issue(project.id, task.id, issue)
+        #   request.env.cr.commit()
 
-        request.env.cr.commit()
+
 
 

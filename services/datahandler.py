@@ -183,6 +183,10 @@ class DataHandler():
         self.__create_all_user_and_employee()
         self.__create_all_project()
 
+        for item,value in self.project_dict.items():
+            res = self.projectDB.browse(value)
+            res.sudo().write({'user_ids': [(4, self.user.id, 0)]})
+
         issues = self.JiraAPI.getAllIssues()
 
         num_issues = len(issues)
@@ -219,7 +223,6 @@ class DataHandler():
             #cnt += 1
             project_id = self.project_dict.get(issue["fields"]["project"]["id"])
             project = self.projectDB.browse(project_id)
-            project.sudo().write({'user_ids': [(4, self.user.id, 0)]})
 
             task_id = self.task_dict.get(issue["id"])
             if not task_id:

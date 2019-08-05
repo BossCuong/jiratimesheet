@@ -5,13 +5,6 @@ from .utils import to_UTCtime,to_localTime
 import datetime as dt
 import pytz
 class DataHandler():
-
-    user_dict = {}
-    employee_dict = {}
-    project_dict = {}
-    task_dict = {}
-    worklog_dict = {}
-
     def __init__(self, login):
         userDB = request.env['res.users'].sudo().with_context(active_test=False)
 
@@ -29,8 +22,20 @@ class DataHandler():
 
         self.userDB = request.env['res.users'].sudo().with_context(active_test=False)
 
+        self.user_dict = {}
+
+        self.employee_dict = {}
+
+        self.project_dict = {}
+
+        self.task_dict = {}
+
+        self.worklog_dict = {}
+
     def __create_project(self,data):
         project = self.projectDB.search([('jiraKey', '=', data["id"])])
+
+        project.sudo().write({'user_ids': [(4, self.user.id, 0)]})
 
         if not project:
             project = self.projectDB.create({
@@ -183,10 +188,6 @@ class DataHandler():
         self.__create_all_user_and_employee()
         self.__create_all_project()
 
-        for item,value in self.project_dict.items():
-            res = self.projectDB.browse(value)
-            res.sudo().write({'user_ids': [(4, self.user.id, 0)]})
-
         issues = self.JiraAPI.getAllIssues()
 
         num_issues = len(issues)
@@ -201,13 +202,13 @@ class DataHandler():
                     end_idx = num_issues % 200
                 request.env['account.analytic.line'].sudo().with_delay().update_issue(self.user.login,
                                                                                       project_dict=self.project_dict,
-                                                                                      emploeee_dict=self.employee_dict,
+                                                                                      employee_dict=self.employee_dict,
                                                                                       user_dict=self.user_dict,
                                                                                       issues=issues[start_idx:end_idx])
         else:
             request.env['account.analytic.line'].sudo().with_delay().update_issue(self.user.login,
                                                                                   project_dict=self.project_dict,
-                                                                                  emploeee_dict=self.employee_dict,
+                                                                                  employee_dict=self.employee_dict,
                                                                                   user_dict=self.user_dict,
                                                                                   issues=issues)
 
@@ -217,10 +218,10 @@ class DataHandler():
         self.employee_dict = data.get("employee_dict")
         issues = data.get("issues")
 
-        #cnt = 0
+        cnt = 0
         for issue in issues:
-            #print(cnt)
-            #cnt += 1
+            print(cnt)
+            cnt += 1
             project_id = self.project_dict.get(issue["fields"]["project"]["id"])
             project = self.projectDB.browse(project_id)
 
